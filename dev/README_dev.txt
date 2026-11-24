@@ -44,3 +44,10 @@ tests\
 COPYING TO THE PC: the copy step from the Claude workspace to the PC carries TEXT only. A binary
 file (PNG, ICO) arrives corrupted (24 Nov: a 2,594-byte PNG arrived as 8,364 bytes). Ship only text
 files from the workspace; the icons on the PC were made earlier and must not be re-copied.
+
+GITHUB (25 Nov): the repository is github.com/Harahel-Whot/contextweir (PRIVATE until the release
+check; user, 25 Nov). .gitignore and .gitattributes sit at the top of tools\ and keep out each
+user's settings.json / rules.json, running.json, *.bak, contextweir\logs\ (real prompts) and
+the .lnk shortcuts. Pushes are made from a Claude workspace copy (the PC cannot run git for
+Claude): stage the tools folder, make the change, push, then copy the changed TEXT files back to
+the PC. Credit name in every file: Harahel-Whot (was HarahelWhot until 25 Nov).
