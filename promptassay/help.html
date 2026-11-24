@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<!-- PromptAssay 0.4.0.0, built 25 Nov 2026. Part of the Wellspring tools.
+     Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
+     Licence: CC BY 4.0 (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PromptAssay help</title>
+<style>
+  body { margin: 0; background: #16181d; color: #e6e8ee; font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 28px 60px; }
+  h1 { font-size: 24px; margin: 0 0 4px; } h2 { font-size: 18px; margin: 30px 0 8px; color: #c9b8ea; border-bottom: 1px solid #333845; padding-bottom: 4px; }
+  h3 { font-size: 15px; margin: 18px 0 4px; }
+  p, li { color: #d4d8e2; } .muted { color: #9aa1b2; }
+  code { font: 13px ui-monospace, Consolas, monospace; background: #252932; border: 1px solid #333845; border-radius: 4px; padding: 0 4px; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 14px; }
+  td, th { border: 1px solid #333845; padding: 5px 8px; text-align: left; vertical-align: top; } th { background: #1e2128; }
+  .box { background: #1e2128; border: 1px solid #333845; border-left: 4px solid #d9a441; border-radius: 6px; padding: 8px 12px; margin: 10px 0; }
+  nav a, a { color: #c9b8ea; } nav a { margin-right: 12px; }
+  .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; }
+  table.codes td:first-child { white-space: nowrap; }
+  tr:target td { background: #3a3320; }
+</style>
+</head>
+<body>
+<main>
+<h1>PromptAssay help</h1>
+<p class="muted">The reader. Version 0.4.0.0 (prototype), built 25 Nov 2026. This file is also in the PromptAssay folder as <code>help.html</code>.</p>
+<nav><a href="#what">What it does</a><a href="#start">Start and stop</a><a href="#demo">Demo</a><a href="#reading">Reading a request</a><a href="#pieces">Exact text</a><a href="#keys">Keys</a><a href="#versions">Versions</a><a href="#warnings">Warnings</a><a href="#settings">Settings</a><a href="#privacy">Privacy</a><a href="#trouble">Problems</a><a href="#codes">Error codes</a><a href="#report">Diagnostic report</a></nav>
+
+<h2 id="what">What it does</h2>
+<p>PromptAssay opens the logs that <b>ContextWeir</b> records and takes each request apart, so you can see exactly what SillyTavern sent to your model: the system prompt, your card, each lorebook entry, the summary, the chat history and anything injected, each with its size. It works with chat completion and, since 0.4, <a href="#text">text completion</a>. It also reads the older Wellspring test logger's folders.</p>
+<p>It only reads. It never changes your logs, cards or lorebooks.</p>
+
+<h2 id="start">Starting and stopping</h2>
+<ul>
+  <li><b>Windows:</b> the <b>PromptAssay</b> shortcut (made by <code>Create Shortcuts (Windows).bat</code> in the tools folder), or <code>Start PromptAssay.bat</code> in the PromptAssay folder.</li>
+  <li><b>Mac:</b> <code>launch/mac/Start PromptAssay.command</code> (first time: right-click, Open). <b>Linux:</b> <code>launch/linux/start-promptassay.sh</code>.</li>
+</ul>
+<p>Its window opens on the newest session. Starting it again while it runs only reopens the window (the launcher says so); to restart it, close its console window and start it again. <b>To stop it,</b> close the small minimised "PromptAssay" console window (Windows) or the terminal (Mac, Linux).</p>
+<p>ContextWeir does not need to be running to read old sessions. While it records, new turns appear by themselves (untick <b>live</b> to hold the view still).</p>
+
+<h2 id="demo">The demo session (made up)</h2>
+<p>At the bottom of the session list is <b>demo (made up): The Lantern Coast</b>: twelve requests from a small invented story, so you can try PromptAssay before setting anything up. Everything in it is invented (the coast, its people, the player "Wren", every prompt and reply); no real chat was used. It is labelled against its own card and lorebook in the <code>demo</code> folder, never against yours.</p>
+<p>A second demo, <b>2 Jan</b>, holds the same twelve requests as SillyTavern sends them in <b>text completion</b> (one prompt string, ChatML instruct template), so you can see how PromptAssay takes such a prompt apart. It is made up too.</p>
+<p>Things to look at: the lorebook entries that enter at #1 and #4 (click one to see its exact text), the swipe at #3, the flagged reply at #4, SillyTavern's Summarize request at #6 and the summary sitting in the prompt from #7, the model change at #8, the empty reply at #9 and its regenerate at #10, Tamsin entering and the keeper leaving at #11. The <code>demo\rules</code> folder has the rule set that flagged them: import it on ContextWeir's Rules tab to try one. To hide the demo, set <code>"showDemo": false</code> in settings.json.</p>
+
+<h2 id="reading">Reading a request</h2>
+<h3>Choosing what to look at</h3>
+<ul>
+  <li>The drop-down at the top picks a <b>session</b> (one ContextWeir run). Old logger runs say "(old logger)".</li>
+  <li>The <b>timeline</b> under it has one mark per request, coloured by its worst warning. Click a mark to open that request.</li>
+  <li>The <b>list</b> on the left shows each request with its time, size, the start of your message and any warnings. <kbd>↑</kbd> <kbd>↓</kbd> move through it.</li>
+  <li><b>flagged only</b> and the <b>rule filter</b> narrow the list to the turns you care about.</li>
+</ul>
+<h3>The request</h3>
+<p>At the top: total size (and an estimate in tokens), how many messages, how long the reply took. Then the warnings for this turn.</p>
+<p>The coloured <b>bar</b> shows where the prompt's size goes:</p>
+<p><span class="sw" style="background:#7fb3d5"></span>before the chat (system prompt, card, lorebook) &nbsp; <span class="sw" style="background:#b39ddb"></span>injected into the chat &nbsp; <span class="sw" style="background:#4f5a6b"></span>chat history &nbsp; <span class="sw" style="background:#e0a96d"></span>after the chat (post-history instructions, notes) &nbsp; <span class="sw" style="background:#8fd19e"></span>reply prefill</p>
+<p><b>+ entered</b> and <b>− left</b> list the lorebook entries and card pieces that came into, or dropped out of, the prompt since the previous request. This is often the quickest way to see why the model suddenly forgot or remembered something.</p>
+<h3>The prompt, in order</h3>
+<p>Each message is a row you can open. Its label says where it sits:</p>
+<table>
+  <tr><th>Label</th><th>Meaning</th></tr>
+  <tr><td>System prompt / Before the chat</td><td>everything placed above the conversation</td></tr>
+  <tr><td>Injected at depth N</td><td>placed inside the conversation, N messages from the end (lorebook entries, author's notes, script notes)</td></tr>
+  <tr><td>After the chat</td><td>post-history instructions and notes sent last</td></tr>
+  <tr><td>Script request</td><td>a private request a game script sent instead of a story turn</td></tr>
+  <tr><td>Player / Narrator</td><td>the chat history (folded into one line; "show" opens it)</td></tr>
+  <tr><td>Reply start (prefill)</td><td>text the model was asked to continue from</td></tr>
+</table>
+<p>The tags on a row say what it holds: <b>lorebook entries</b> (blue), <b>card fields</b> (purple), <b>SillyTavern blocks</b> such as the summary (olive), and <b>new</b> if it changed since the previous request. Labels come from matching against your own lorebook and card files; anything that could not be matched is shown with its raw text, unlabelled.</p>
+
+<h2 id="text">Text completion</h2>
+<p>In <b>chat completion</b> SillyTavern sends a list of messages, and PromptAssay labels each one. In <b>text completion</b> it sends <b>one long string</b>: the story string, lorebook entries and the chat, with the instruct template's markers (for example <code>&lt;|im_start|&gt;user</code>) between the turns. PromptAssay takes that string apart again:</p>
+<ul>
+  <li>First it finds the lorebook entries and card fields it knows, so a marker that happens to sit inside one of them never splits the prompt.</li>
+  <li>Then it cuts at the instruct template's markers. It recognises the template from SillyTavern's own instruct presets (the <code>instruct</code> folder beside your lorebook folder, or <code>instructDir</code> in settings.json) or from its built-in list: ChatML, Llama 3, Gemma, Mistral, Alpaca, Vicuna, Phi and Command-R.</li>
+  <li>With no template but speaker names (SillyTavern sends <code>Name:</code> stop strings), it cuts at the names.</li>
+  <li>With neither, the prompt stays one block, as before.</li>
+</ul>
+<p>A line above the prompt says how it was split. Labels that rest on the template say <b>(by template)</b>: a guess, if a good one. The markers themselves are shown dimmed. <b>Show as one block</b> (key <code>B</code>) shows the prompt exactly as it was sent. Joined together, the sections are always the prompt, character for character. Text injected without its own marker (an author's note, an entry "at depth") stays inside the turn next to it; its tag still names it.</p>
+
+<h2 id="pieces">Seeing exactly what something put into the prompt</h2>
+<p>Click any tag (or any name under <b>+ entered</b>). A popup shows that piece <b>exactly as it was sent</b>: macros such as <code>{{user}}</code> already filled in, its size and where it sits in the message. <b>Copy text</b> copies it; <b>Show in the prompt</b> opens the message and marks the piece inside it.</p>
+<div class="box">The popup shows lorebook entries exactly as written, including any secret lines. Do not share screenshots of it if your card has secrets.</div>
+
+<h2 id="keys">Moving around and keyboard shortcuts</h2>
+<p><b>◀ Previous</b> and <b>Next ▶</b> at the top of each request step through the requests, within whatever filters are on. Click any mark on the timeline to jump to that request; the timeline scrolls sideways to keep the current one in view.</p>
+<table>
+  <tr><th>Keys</th><th>What they do</th></tr>
+  <tr><td><code>←</code> / <code>→</code></td><td>The request before / after</td></tr>
+  <tr><td><code>↑</code> / <code>↓</code> (or <code>K</code> / <code>J</code>)</td><td>Up / down the list (the list shows the newest first)</td></tr>
+  <tr><td><code>Shift+←</code> / <code>Shift+→</code></td><td>The flagged request before / after</td></tr>
+  <tr><td><code>Home</code> / <code>End</code></td><td>The first / last request</td></tr>
+  <tr><td><code>F</code></td><td>Flagged only on or off</td></tr>
+  <tr><td><code>L</code></td><td>Live updates on or off</td></tr>
+  <tr><td><code>0</code> <code>1</code> <code>2</code> <code>3</code></td><td>All requests / story turns / Summarize / script requests</td></tr>
+  <tr><td><code>E</code></td><td>Open or close all sections of the request</td></tr>
+  <tr><td><code>B</code></td><td>Text completion: the prompt as one block / as sections</td></tr>
+  <tr><td><code>?</code></td><td>The list of shortcuts (also the <b>Keys</b> button)</td></tr>
+</table>
+
+<h2 id="versions">Which versions and which model</h2>
+<p>The line under the header says what the session was recorded with:</p>
+<ul>
+  <li><b>Frontend:</b> the SillyTavern version, noted by ContextWeir 0.5 or newer when the session started (if ContextWeir's SillyTavern folder is set).</li>
+  <li><b>Model server:</b> its name and version, and the model it said was loaded (KoboldCpp reports both).</li>
+  <li><b>Model asked for:</b> the model name each request carried. If it changed during the session, the line says where, the turn list marks the request with <b>model changed</b>, and the timeline marks it with a pink line on top. A request's own view says <b>model … (changed from …)</b>.</li>
+</ul>
+<p>Logs made before ContextWeir 0.5 (and the old Wellspring logger's runs) say <b>not recorded</b>. If your lorebook folder is set, the SillyTavern installed <i>now</i> is shown beside it, marked "installed now": that is today's version, not necessarily the one that made the log.</p>
+
+<h2 id="warnings">Warnings</h2>
+<p>Warnings come from ContextWeir's flag rules (you set them up in ContextWeir's window). PromptAssay shows where they fired: <span class="sw" style="background:#6b8fb3"></span>note, <span class="sw" style="background:#d9a441"></span>warning, <span class="sw" style="background:#e05d5d"></span>serious. The matching text is highlighted inside the reply or prompt.</p>
+
+<h2 id="settings">Settings (settings.json)</h2>
+<p>Edit with any text editor while PromptAssay is closed.</p>
+<table>
+  <tr><th>Setting</th><th>What it does</th></tr>
+  <tr><td><code>logDirs</code></td><td>folders to read sessions from: ContextWeir's <code>logs</code> folder, and old logger folders if you have them</td></tr>
+  <tr><td><code>worldsDir</code></td><td>SillyTavern's lorebook folder, for labelling (e.g. <code>SillyTavern/data/default-user/worlds</code>)</td></tr>
+  <tr><td><code>charactersDir</code></td><td>SillyTavern's character folder, for labelling card fields (PNG cards, and cards saved as JSON)</td></tr>
+  <tr><td><code>instructDir</code></td><td>optional: SillyTavern's instruct preset folder, for taking text-completion prompts apart. Left empty, the <code>instruct</code> folder beside <code>worldsDir</code> is used if there is one; otherwise the built-in templates</td></tr>
+  <tr><td><code>showDemo</code></td><td><code>true</code> (the default) lists the made-up demo session at the bottom; <code>false</code> hides it</td></tr>
+</table>
+<p>Folders can be written relative to the PromptAssay folder or in full. Without <code>worldsDir</code> and <code>charactersDir</code>, sections are labelled by position only.</p>
+
+<h2 id="privacy">Privacy and safety</h2>
+<ul>
+  <li>PromptAssay runs only on this computer (127.0.0.1) and only reads. It needs no internet and sends nothing anywhere.</li>
+  <li>Web pages in your browser cannot read your logs through it.</li>
+  <li>Logs hold full prompts in plain text. Keep them private.</li>
+</ul>
+
+<h2 id="trouble">When something goes wrong</h2>
+<h3>"no sessions found" (PA-NO-SESSIONS)</h3><p>Check <code>logDirs</code> in settings.json points at ContextWeir's <code>logs</code> folder, and that ContextWeir has recorded at least one turn.</p>
+<h3>Nothing is labelled</h3><p>Set <code>worldsDir</code> and <code>charactersDir</code>. If you changed a lorebook entry after the turn was recorded, the old text no longer matches and shows unlabelled.</p>
+<h3>No window opens</h3><p>The window gets a free port each time PromptAssay starts. Look in its console for the line <code>window: http://127.0.0.1:…</code> and open that address in your browser.</p>
+<h3>A very long session is slow to open</h3><p>The prototype reads the whole session file when you open it; large sessions take a few seconds.</p>
+
+<h2 id="codes">Error codes</h2>
+<p>Every known problem has a short code that never changes, shown beside the plain message: in the console, in the window. If you ask someone for help, quote the code.</p>
+<!-- ERROR CODES START (made by dev/errors_to_help.js from lib/error_codes.js: edit that file, not this table) -->
+<table class="codes">
+<tr><th>Code</th><th>What it means</th><th>What to do</th></tr>
+<tr id="PA-SETTINGS-BAD-JSON"><td><code>PA-SETTINGS-BAD-JSON</code></td><td><b>settings.json is not valid JSON.</b> PromptAssay could not read its settings file (often a missing comma or quote after editing it by hand), so it stopped.</td><td>Fix the file, or delete it and start PromptAssay again to get the defaults.</td></tr>
+<tr id="PA-SETTINGS-LOGDIRS"><td><code>PA-SETTINGS-LOGDIRS</code></td><td><b>logDirs is not a list of folders.</b> The "logDirs" setting must be a list of folder names in square brackets, e.g. ["../contextweir/logs"].</td><td>Fix "logDirs" in settings.json, then start PromptAssay again.</td></tr>
+<tr id="PA-WINDOW-FAILED"><td><code>PA-WINDOW-FAILED</code></td><td><b>The window could not open.</b> PromptAssay could not open a port for its window, so it stopped.</td><td>Start it again. If it keeps happening, restart the computer; a security program may be blocking local ports.</td></tr>
+<tr id="PA-LOG-FOLDER"><td><code>PA-LOG-FOLDER</code></td><td><b>A log folder could not be read.</b> One of the folders in "logDirs" does not exist or cannot be read, so its sessions are not listed.</td><td>Check the folder in settings.json. By default it is ContextWeir's logs folder next to PromptAssay's.</td></tr>
+<tr id="PA-NO-SESSIONS"><td><code>PA-NO-SESSIONS</code></td><td><b>No sessions found.</b> The log folders hold no sessions yet (a session appears once ContextWeir has recorded at least one turn).</td><td>Play a turn through ContextWeir (Start pressed, frontend pointed at it), or open the demo session that ships with the tools.</td></tr>
+<tr id="PA-LABELS-OFF"><td><code>PA-LABELS-OFF</code></td><td><b>Labelling is off.</b> No lorebook or character folder is set, so sections are labelled by position only (no entry names).</td><td>Set "worldsDir" and "charactersDir" in settings.json to SillyTavern's data\default-user\worlds and characters folders.</td></tr>
+<tr id="PA-LABELS-FOLDER"><td><code>PA-LABELS-FOLDER</code></td><td><b>A lorebook or character folder could not be read.</b> The folder set in "worldsDir" or "charactersDir" does not exist or cannot be read, so nothing from it is labelled.</td><td>Check the folder in settings.json (SillyTavern keeps them in data\default-user\).</td></tr>
+<tr id="PA-LABEL-FILE"><td><code>PA-LABEL-FILE</code></td><td><b>A lorebook or card could not be read.</b> One file in the lorebook or character folder is not a readable lorebook or card, so it was skipped. The others are used.</td><td>Usually harmless (a half-saved or non-SillyTavern file). The detail names the file.</td></tr>
+<tr id="PA-TEMPLATES-FOLDER"><td><code>PA-TEMPLATES-FOLDER</code></td><td><b>The instruct preset folder could not be read.</b> PromptAssay looks in SillyTavern's instruct folder to take text-completion prompts apart. The folder in "instructDir" (or the one beside your lorebook folder) could not be read.</td><td>Check "instructDir" in settings.json, or leave it empty. Without it, text-completion prompts are taken apart with the built-in templates (ChatML, Llama 3, Gemma, Mistral, Alpaca and a few more).</td></tr>
+<tr id="PA-TEMPLATE-BAD"><td><code>PA-TEMPLATE-BAD</code></td><td><b>An instruct preset file was skipped.</b> A file in the instruct folder could not be read as a SillyTavern instruct preset (damaged, too large, or not a preset).</td><td>Usually harmless; the other presets and the built-in templates are still used. The detail names the file.</td></tr>
+<tr id="PA-SESSION-GONE"><td><code>PA-SESSION-GONE</code></td><td><b>That session is no longer there.</b> The page asked for a session that is no longer in the log folders (ContextWeir may have deleted it as an old session).</td><td>Pick another session from the list, or reload the page.</td></tr>
+<tr id="PA-RECORD-UNREADABLE"><td><code>PA-RECORD-UNREADABLE</code></td><td><b>A request could not be read.</b> A record in the session could not be read back (the log file changed, or the record is damaged).</td><td>Reload the page. If it repeats for the same request, that record is damaged; the rest of the session still works.</td></tr>
+<tr id="PA-REFUSED-HOST"><td><code>PA-REFUSED-HOST</code></td><td><b>A request with a strange address was refused.</b> Something asked PromptAssay for a page with a Host header that was not this computer: how web pages try DNS-rebinding tricks.</td><td>Nothing to do if you did not expect it. Open PromptAssay with its Start file.</td></tr>
+<tr id="PA-REFUSED-ORIGIN"><td><code>PA-REFUSED-ORIGIN</code></td><td><b>A request from another page was refused.</b> A page that is not PromptAssay's own window tried to read your logs. Only the window itself may.</td><td>Nothing to do if you did not expect it.</td></tr>
+<tr id="PA-READ-ONLY"><td><code>PA-READ-ONLY</code></td><td><b>A request to change something was refused.</b> PromptAssay only reads. Something tried to send it data (anything but a plain read).</td><td>Nothing to do if you did not expect it.</td></tr>
+<tr id="PA-RUNNING-FILE"><td><code>PA-RUNNING-FILE</code></td><td><b>running.json could not be written.</b> The Start file finds a running PromptAssay through running.json. Writing it failed, so the Start file may open the wrong window.</td><td>Check the PromptAssay folder is not read-only.</td></tr>
+<tr id="UNKNOWN"><td><code>UNKNOWN</code></td><td><b>Something unexpected went wrong.</b> A problem with no code of its own.</td><td>Save a diagnostic report and send it with a description of what you were doing.</td></tr>
+</table>
+<!-- ERROR CODES END -->
+
+<h2 id="report">Diagnostic report</h2>
+<p>To ask someone for help, use <b>Save diagnostic report</b> (the <b>Report</b> button in the header). It makes one small text file with: PromptAssay's version and build date, your Node.js version and operating system, the browser showing the window, the folders it reads and whether they can be read, how many sessions and lorebook or card pieces it found, the recent problems with their codes, and the last few dozen console lines.</p>
+<ul>
+  <li>It <b>never</b> holds a prompt, a reply or lorebook text.</li>
+  <li>Folder paths are shortened: your home folder is shown as <code>&lt;home&gt;</code>, because on Windows it usually holds your name. Tick <b>Show full folder paths</b> if the helper needs them.</li>
+  <li>The window shows the whole report before you save it. <b>Save to a file</b> saves exactly that text; <b>Copy</b> puts it on the clipboard.</li>
+  <li>Nothing is sent anywhere, ever: there is no automatic crash reporting. You decide whether to attach the file.</li>
+</ul>
+
+<p class="muted" style="margin-top:40px">Design and direction by Harahel-Whot; written by Claude Opus 5.5 (Anthropic) for the Wellspring project. Code: MIT licence; help, docs and icons: CC BY 4.0 (see LICENSE.txt).</p>
+</main>
+</body>
+</html>

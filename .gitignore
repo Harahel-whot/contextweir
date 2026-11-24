@@ -1,0 +1,15 @@
+# Each user's own files: made on first start, never shipped
+contextweir/settings.json
+contextweir/rules.json
+promptassay/settings.json
+*.bak
+*.tmp
+running.json
+# Logs hold real prompts and replies: never shipped (the made-up demo logs are)
+contextweir/logs/
+# Windows shortcuts made by "Create Shortcuts (Windows).bat"
+*.lnk
+# Test work folders
+dev/tests/*_work/
+dev/tests/*_out/
+node_modules/

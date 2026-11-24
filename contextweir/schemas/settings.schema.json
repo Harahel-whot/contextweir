@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contextweir-settings.schema.json",
+  "$comment": "Made by ContextWeir 0.5.6.0 (node contextweir.js --schema settings). Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic). Licence: MIT. A schema checks shapes and ranges only: run node contextweir.js --check as well.",
+  "title": "ContextWeir settings.json",
+  "type": "object",
+  "properties": {
+    "_about": {
+      "type": "string",
+      "description": "credit line; ignored by ContextWeir"
+    },
+    "relayPort": {
+      "description": "Receiving port. Your frontend connects here, e.g. http://127.0.0.1:5002/v1. It never moves on its own. Applies: after Restart.",
+      "default": 5002,
+      "type": "integer",
+      "minimum": 1024,
+      "maximum": 65535
+    },
+    "targetHost": {
+      "description": "Model server (this computer). ContextWeir only forwards to a model server on this computer. Applies: after Restart.",
+      "default": "127.0.0.1",
+      "type": "string",
+      "enum": [
+        "127.0.0.1",
+        "localhost",
+        "::1",
+        "[::1]"
+      ]
+    },
+    "targetPort": {
+      "description": "Model server port. KoboldCpp's default is 5001. Applies: after Restart.",
+      "default": 5001,
+      "type": "integer",
+      "minimum": 1024,
+      "maximum": 65535
+    },
+    "logsDir": {
+      "description": "Log folder. Relative to the ContextWeir folder, or a full path. The folder above it must exist. Applies: after Restart.",
+      "default": "logs",
+      "type": "string",
+      "maxLength": 400
+    },
+    "keepSessions": {
+      "description": "Sessions to keep. Older session folders are deleted when a session starts. Applies: at once.",
+      "default": 30,
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "maxRecordsPerSession": {
+      "description": "Most turns per session. After this many, turns still pass through but are not saved. Applies: at once.",
+      "default": 5000,
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "sillyTavernDir": {
+      "description": "SillyTavern folder (optional). Only its package.json is read, for the version number noted in each session. Leave empty to skip. Applies: after Restart.",
+      "default": "",
+      "type": "string",
+      "maxLength": 400
+    },
+    "maxRequestMB": {
+      "description": "Largest request (MB). Larger requests are refused. Applies: at once.",
+      "default": 32,
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1024
+    },
+    "maxReplyMB": {
+      "description": "Largest reply kept (MB). Longer replies still pass through; the log keeps this much. Applies: at once.",
+      "default": 16,
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1024
+    },
+    "upstreamTimeoutSec": {
+      "description": "Model timeout (seconds). Give up on a model that sends nothing for this long. Applies: at once.",
+      "default": 600,
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 86400
+    },
+    "ruleTimeoutMs": {
+      "description": "Rule time limit (ms). A rule that takes longer is switched off for the session. Applies: at once.",
+      "default": 1000,
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 60000
+    },
+    "showStartScreen": {
+      "description": "Show the start screen. Untick to start recording as soon as ContextWeir opens. The screen still comes back if the receiving port is taken. Applies: at once.",
+      "default": true,
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

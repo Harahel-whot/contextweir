@@ -1,0 +1,45 @@
+{
+  "format": "contextweir-log",
+  "version": 1,
+  "tool": "ContextWeir",
+  "toolVersion": "demo",
+  "toolBuilt": "made-up demo",
+  "session": "session_2026-01-02T10-00-00-000Z",
+  "demo": true,
+  "note": "A made-up session that ships with the tools: the same story in text completion (ChatML instruct template). Nothing in it comes from a real chat.",
+  "started": "2026-01-02T10:00:00.000Z",
+  "updated": "2026-01-02T10:08:45.100Z",
+  "frontend": {
+    "name": "SillyTavern",
+    "version": "1.19.0",
+    "readFrom": "made-up demo"
+  },
+  "modelServer": {
+    "server": {
+      "name": "KoboldCpp",
+      "version": "demo"
+    },
+    "models": [
+      "demo-model"
+    ],
+    "reachable": true
+  },
+  "requests": 12,
+  "swipes": 2,
+  "errors": 0,
+  "totalMs": 117100,
+  "totalPromptChars": 45841,
+  "flagged": 3,
+  "byRule": {
+    "Reply starts with OOC": 1,
+    "The bell is named": 1,
+    "Empty reply": 1,
+    "No status line": 2
+  },
+  "notLogged": 0,
+  "unrecognised": 0,
+  "textRequests": 12,
+  "avgSeconds": 9.8,
+  "avgPromptChars": 3820,
+  "warningsPer100": 25
+}

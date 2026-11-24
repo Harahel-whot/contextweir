@@ -1,0 +1,51 @@
+ContextWeir 0.5.6.0 and PromptAssay 0.4.0.0, built 25 Nov 2026. Part of the Wellspring tools.
+Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
+Licence: CC BY 4.0 (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
+
+SECURITY: CONTEXTWEIR AND PROMPTASSAY
+====================================
+Reviewed 23 Nov (ContextWeir 0.4, PromptAssay 0.3) by the chat that wrote them, and again on 25 Nov
+(ContextWeir 0.5.4.0, PromptAssay 0.3.5.0) by a separate reviewer that had not written the code. That
+review found a way for a web page to stop both tools with one malformed request, two ways for a local
+program or a crafted file to stop ContextWeir, and a lorebook pattern that could freeze PromptAssay;
+all fixed in ContextWeir 0.5.5.0 and PromptAssay 0.3.6.0, each with a test that replays the attack.
+In short:
+
+- Both tools run only on your computer (127.0.0.1). Nothing on your network or the internet can
+  connect to them, and they never contact the internet themselves.
+- Web pages in your browser cannot read your logs through them. Requests a browser makes on behalf of
+  another site (an image or link on a web page) are refused outright, and no request, however
+  malformed, can stop either tool. Only ContextWeir's own panel
+  window can change its settings or rules, press its buttons (Start, Stop, Quit...), check whether
+  a port is free or test the model address, so no web page or other program can use it to probe
+  your computer.
+- ContextWeir forwards only to a model server on this computer; the panel cannot change that.
+  Cloud models are not supported. It never saves request headers (where API keys travel).
+- No outside packages, no downloads, no updates, no running of other programs. Rule files are
+  data, never code; anything unexpected in one is refused with a reason. Rules run with a time
+  limit, so even a badly written pattern cannot freeze the recorder.
+- Files: ContextWeir writes only its own logs, its rules and its settings (keeping the previous
+  copy of each as .bak; a change with any problem is refused whole). It deletes only its own old
+  session folders. If you set the SillyTavern folder, it reads that folder's package.json for the
+  version number and nothing else. PromptAssay only reads (it writes nothing but its running.json
+  while it runs, and a settings.json with the defaults if there is none).
+- The diagnostic report (both tools, since 24 Nov) holds versions, settings, counts, recent error
+  codes and the tools' own console lines: never prompts, replies or lorebook text. Folder paths
+  are shortened (<home>) unless you tick full paths. You see all of it before saving, and it is
+  never sent anywhere: there is no automatic crash reporting.
+- Text completion (ContextWeir 0.5.6, PromptAssay 0.4) was checked again by a separate reviewer
+  on 25 Nov before release: prompts built to make the new splitter work very hard, thousands of
+  instruct presets with tiny markers, and floods of tiny reply lines are all now capped and fast.
+  PromptAssay reads SillyTavern's instruct presets read-only (at most 200 files of 256 KB); markers
+  from them are only ever searched as plain text, never run as patterns.
+- The launchers start Node and open the window in your browser's app mode. "Create Shortcuts"
+  makes two shortcut files and nothing else.
+
+PRIVACY: logs hold your full prompts and replies in plain text, including secrets in your cards
+and anything you typed. Keep the logs folder private, and don't share screenshots of entries that
+hold secrets.
+
+Never expose SillyTavern or these tools to the internet. If you use remote access (for example
+Tailscale), keep SillyTavern's whitelist or login on.
+
+The full review, with what was tested, is part of the transparency package.

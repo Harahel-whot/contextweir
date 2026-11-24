@@ -1,0 +1,39 @@
+{
+  "_about": "ContextWeir 0.5.6.0, built 25 Nov 2026. Part of the Wellspring tools. Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic). Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir",
+  "format": "contextweir-rules",
+  "version": 1,
+  "groups": [
+    {
+      "name": "General",
+      "enabled": true,
+      "rules": [
+        {
+          "name": "Empty reply",
+          "severity": "serious",
+          "target": "reply",
+          "test": "regexMissing",
+          "value": "\\S",
+          "note": "The model sent nothing back. Usually a crash, a timeout or a stop string hit at once."
+        },
+        {
+          "name": "Reply starts with OOC",
+          "severity": "warning",
+          "target": "reply",
+          "test": "regex",
+          "value": "^\\s*(?:[(\\[]\\s*)?OOC\\b",
+          "flags": "i",
+          "note": "The model stepped out of the story. Fine if the player asked an OOC question; a problem otherwise."
+        },
+        {
+          "name": "Model speaks as the AI",
+          "severity": "warning",
+          "target": "reply",
+          "test": "regex",
+          "value": "\\bas an AI\\b|\\blanguage model\\b",
+          "flags": "i",
+          "note": "Breaks immersion in any roleplay card."
+        }
+      ]
+    }
+  ]
+}

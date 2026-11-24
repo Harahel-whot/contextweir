@@ -1,0 +1,103 @@
+{
+  "_about": "Made-up demo for the Wellspring tools (ContextWeir and PromptAssay). Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic). Licence: CC BY 4.0 (see LICENSE.txt).",
+  "entries": {
+    "0": {
+      "uid": 0,
+      "key": [
+        "Greywick",
+        "lighthouse"
+      ],
+      "keysecondary": [],
+      "comment": "[Place] Greywick Light",
+      "content": "Greywick Light is a squat white tower on the cliff above Greywick village, the oldest light on the Lantern Coast. Its lamp burns whale oil and must be trimmed twice a night. The keeper's cottage leans against its seaward side.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "depth": 4,
+      "disable": false
+    },
+    "1": {
+      "uid": 1,
+      "key": [
+        "salt steps",
+        "steps"
+      ],
+      "keysecondary": [],
+      "comment": "[Place] The Salt Steps",
+      "content": "The Salt Steps are three hundred and twelve steps cut into the cliff between the quay and Greywick Light. They are slick with spray in any wind, and the village children count them aloud for luck.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 0,
+      "depth": 4,
+      "disable": false
+    },
+    "2": {
+      "uid": 2,
+      "key": [
+        "Odile",
+        "keeper",
+        "knock"
+      ],
+      "keysecondary": [],
+      "comment": "[Person] Keeper Odile Marsh",
+      "content": "Odile Marsh has kept Greywick Light for thirty-one years. She is small, weathered and blunt, speaks little, and tests every apprentice with chores before she trusts them with the lamp. She calls {{user}} \"the new hands\".",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 4,
+      "depth": 4,
+      "disable": false
+    },
+    "3": {
+      "uid": 3,
+      "key": [
+        "bell",
+        "drowned"
+      ],
+      "keysecondary": [],
+      "comment": "[Lore] The Drowned Bell",
+      "content": "On still nights a bell can be heard ringing out at sea where no buoy is moored. The village says it belongs to a chapel that slid into the sea in a storm long ago. Odile will not talk about it, and she always lights the lamp early when it rings.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 4,
+      "depth": 4,
+      "disable": false
+    },
+    "4": {
+      "uid": 4,
+      "key": [
+        "tide",
+        "wick",
+        "lamp"
+      ],
+      "keysecondary": [],
+      "comment": "[Rule] Tide hours",
+      "content": "The lamp is lit at dusk and trimmed at the turn of each tide. A keeper who misses a trimming writes it in the log in red ink. Two red lines in a month and the guild sends an inspector.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 4,
+      "depth": 4,
+      "disable": false
+    },
+    "5": {
+      "uid": 5,
+      "key": [
+        "ferry",
+        "Tamsin"
+      ],
+      "keysecondary": [],
+      "comment": "[Person] Tamsin the ferrywoman",
+      "content": "Tamsin runs the only ferry between Greywick and the mainland. She is loud, cheerful and knows every rumour on the coast, but she will not take the boat out after the bell has rung.",
+      "constant": false,
+      "selective": true,
+      "order": 100,
+      "position": 4,
+      "depth": 4,
+      "disable": false
+    }
+  }
+}

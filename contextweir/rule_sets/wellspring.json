@@ -1,0 +1,93 @@
+{
+  "_about": "ContextWeir 0.5.6.0, built 25 Nov 2026. Part of the Wellspring tools. Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic). Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir",
+  "format": "contextweir-rules",
+  "version": 1,
+  "groups": [
+    {
+      "name": "Wellspring",
+      "enabled": true,
+      "rules": [
+        {
+          "name": "No status line",
+          "severity": "warning",
+          "target": "reply",
+          "test": "missing",
+          "value": "[Time:",
+          "unless": [
+            {
+              "target": "lastMessage",
+              "test": "startsWith",
+              "value": "[Private system request"
+            },
+            {
+              "target": "lastMessage",
+              "test": "startsWith",
+              "value": "[Autopilot"
+            },
+            {
+              "target": "prompt",
+              "test": "contains",
+              "value": "CHARACTER CREATION IS IN PROGRESS"
+            },
+            {
+              "target": "reply",
+              "test": "regex",
+              "value": "^\\s*(?:[(\\[]\\s*)?OOC\\b",
+              "flags": "i"
+            },
+            {
+              "target": "prompt",
+              "test": "regex",
+              "value": "Summari[sz]e the most important facts",
+              "flags": "i"
+            },
+            {
+              "target": "lastMessage",
+              "test": "contains",
+              "value": "[Private system request"
+            },
+            {
+              "target": "lastMessage",
+              "test": "contains",
+              "value": "[Autopilot"
+            }
+          ],
+          "note": "Story replies should end with the status line. Skipped for the game's private script requests, during character creation, for OOC answers, and for SillyTavern's Summarize requests. The \"contains\" lines do the same job for text completion, where the last message is the end of one long prompt."
+        },
+        {
+          "name": "Status line during character creation",
+          "severity": "warning",
+          "target": "reply",
+          "test": "contains",
+          "value": "[Time:",
+          "unless": [
+            {
+              "target": "prompt",
+              "test": "missing",
+              "value": "CHARACTER CREATION IS IN PROGRESS"
+            }
+          ],
+          "note": "The status line should only appear once the story has begun."
+        },
+        {
+          "name": "Invented rule: breach of the Compact",
+          "severity": "note",
+          "target": "reply",
+          "test": "regex",
+          "value": "\\bbreach(es|ed)? of the (Oculum )?Compact\\b",
+          "flags": "i",
+          "note": "The model kept inventing this rule in early tests."
+        },
+        {
+          "name": "Salt near the freshwater lake",
+          "severity": "note",
+          "target": "reply",
+          "test": "regex",
+          "value": "salt[- ]?(crust|water|y)",
+          "flags": "i",
+          "note": "Lake Ocul is fresh water."
+        }
+      ]
+    }
+  ]
+}

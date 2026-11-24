@@ -1,0 +1,71 @@
+{
+  "_about": "Made-up demo for the Wellspring tools (ContextWeir and PromptAssay). Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic). Licence: CC BY 4.0 (see LICENSE.txt).",
+  "format": "contextweir-rules",
+  "version": 1,
+  "groups": [
+    {
+      "name": "General",
+      "enabled": true,
+      "rules": [
+        {
+          "name": "Empty reply",
+          "enabled": true,
+          "severity": "serious",
+          "target": "reply",
+          "test": "regexMissing",
+          "value": "\\S",
+          "note": "The model sent nothing back."
+        },
+        {
+          "name": "Reply starts with OOC",
+          "enabled": true,
+          "severity": "warning",
+          "target": "reply",
+          "test": "regex",
+          "value": "^\\s*(?:[(\\[]\\s*)?OOC\\b",
+          "note": "The narrator stepped out of the story."
+        },
+        {
+          "name": "Model speaks as the AI",
+          "enabled": true,
+          "severity": "warning",
+          "target": "reply",
+          "test": "regex",
+          "value": "\\bas an AI\\b|\\blanguage model\\b"
+        }
+      ]
+    },
+    {
+      "name": "Lantern Coast",
+      "enabled": true,
+      "rules": [
+        {
+          "name": "No status line",
+          "enabled": true,
+          "severity": "warning",
+          "target": "reply",
+          "test": "missing",
+          "value": "[Tide:",
+          "unless": [
+            {
+              "target": "lastMessage",
+              "test": "regex",
+              "value": "summari[sz]e",
+              "flags": "i"
+            }
+          ],
+          "note": "Every story reply should end with the [Tide: | Lamp: | Place:] line. Summarize requests are skipped."
+        },
+        {
+          "name": "The bell is named",
+          "enabled": true,
+          "severity": "note",
+          "target": "reply",
+          "test": "contains",
+          "value": "drowned bell",
+          "note": "Just a marker: shows where the story mentions the Drowned Bell by name."
+        }
+      ]
+    }
+  ]
+}

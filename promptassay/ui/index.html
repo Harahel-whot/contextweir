@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!-- PromptAssay 0.4.0.0, built 25 Nov 2026. Part of the Wellspring tools.
+     Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
+     Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>PromptAssay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/app.css">
+  <link rel="icon" href="/icon.png" type="image/png">
+</head>
+<body>
+  <header>
+    <img src="/icon.png" alt="" class="logo" width="24" height="24">
+    <h1>PromptAssay</h1>
+    <select id="session" aria-label="Session"></select>
+    <span id="sessionStats" class="muted"></span>
+    <label class="muted" title="Show new requests as they are logged"><input type="checkbox" id="live" checked> live</label>
+    <span id="newNote" class="newnote" hidden></span>
+    <span class="grow"></span>
+    <label class="muted"><input type="checkbox" id="onlyFlagged"> flagged only</label>
+    <select id="kindFilter" aria-label="Filter by kind of request"><option value="">all requests</option><option value="story">story turns</option><option value="summary">Summarize</option><option value="script">script requests</option></select>
+    <select id="ruleFilter" aria-label="Filter by rule"><option value="">all rules</option></select>
+    <span class="btns"><button id="keysBtn" type="button" title="Keyboard shortcuts (?)">Keys</button> <button id="helpBtn" type="button">Help</button> <button id="diagBtn" type="button" title="Save a diagnostic report to attach to a help request (no prompts or replies)">Report</button> <button id="aboutBtn" type="button">About</button></span>
+  </header>
+
+  <div id="versions" class="versions" aria-label="Versions this session was recorded with"></div>
+
+  <div id="timeline" aria-label="Timeline: one mark per request, coloured by its worst warning"></div>
+
+  <main>
+    <nav id="turns" aria-label="Requests"></nav>
+    <section id="detail">
+      <p class="muted pad">Pick a request on the left, or click the timeline.</p>
+    </section>
+  </main>
+
+  <!-- Exact text of one lorebook entry, card field or block, as it was sent -->
+  <dialog id="pieceDialog">
+    <h3 id="pieceTitle"></h3>
+    <p id="pieceWhere" class="muted small"></p>
+    <pre id="pieceText" class="piece"></pre>
+    <div class="buttons">
+      <button type="button" id="pieceCopy">Copy text</button>
+      <button type="button" id="pieceShow">Show in the prompt</button>
+      <button type="button" id="pieceClose" class="primary">Close</button>
+    </div>
+  </dialog>
+
+  <dialog id="keysDialog">
+    <h3>Keyboard shortcuts</h3>
+    <table class="keys" id="keysTable"></table>
+    <p class="muted small">Single-key shortcuts do nothing while you are typing in a box.</p>
+    <div class="buttons"><button type="button" id="keysClose" class="primary">Close</button></div>
+  </dialog>
+
+  <!-- Diagnostic report: shown in full before it is saved -->
+  <dialog id="diagDialog" class="wide">
+    <h3>Diagnostic report</h3>
+    <p class="muted small">This is everything that goes in the file. It holds no prompts, replies or lorebook text. Nothing is sent anywhere: save the file and attach it yourself when you ask for help.</p>
+    <label class="inline"><input type="checkbox" id="diagFull"> Show full folder paths (they may contain your user name)</label>
+    <pre id="diagText" class="diag"></pre>
+    <div class="buttons">
+      <button type="button" id="diagCopy">Copy</button>
+      <a id="diagSave" class="button primary" download="promptassay-diagnostic.txt" href="#">Save to a file</a>
+      <button type="button" id="diagClose">Close</button>
+    </div>
+  </dialog>
+
+  <dialog id="aboutDialog">
+    <div id="aboutBody"></div>
+    <div class="buttons"><button type="button" id="aboutClose" class="primary">Close</button></div>
+  </dialog>
+
+  <script src="/app.js"></script>
+</body>
+</html>

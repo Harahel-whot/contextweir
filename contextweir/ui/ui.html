@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<!-- ContextWeir 0.5.6.0, built 25 Nov 2026. Part of the Wellspring tools.
+     Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
+     Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>ContextWeir</title>
+  <link rel="stylesheet" href="/ui.css">
+  <link rel="icon" href="/icon.png" type="image/png">
+</head>
+<body>
+  <header>
+    <img src="/icon.png" alt="" class="logo" width="24" height="24">
+    <h1>ContextWeir</h1>
+    <span id="ver" class="muted"></span>
+    <span id="statePill" class="pill">…</span>
+    <span class="controls">
+      <button id="btnStart" type="button" class="primary" title="Open the receiving port and start recording">Start</button>
+      <button id="btnPause" type="button" title="Turns keep passing through; nothing is saved">Pause</button>
+      <button id="btnStop" type="button" title="Close the receiving port; your frontend gets errors until you Start again">Stop</button>
+      <button id="btnRestart" type="button" title="Apply the saved settings and start a new session">Restart</button>
+    </span>
+    <span class="grow"></span>
+    <span id="live" class="muted"></span>
+    <span class="headBtns">
+      <button id="keysBtn" type="button" title="Keyboard shortcuts (?)">Keys</button>
+      <button id="helpBtn" type="button">Help</button>
+      <button id="aboutBtn" type="button">About</button>
+      <button id="btnQuit" type="button" class="danger" title="Stop recording and close ContextWeir">Quit</button>
+    </span>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <nav id="tabs">
+    <button type="button" data-tab="status" class="on">Status</button>
+    <button type="button" data-tab="connection">Connection</button>
+    <button type="button" data-tab="logs">Logs</button>
+    <button type="button" data-tab="rules">Rules</button>
+    <button type="button" data-tab="advanced">Advanced</button>
+  </nav>
+
+  <main>
+    <!-- STATUS: the start screen while nothing is recording, the session while it is -->
+    <section id="tab-status" class="tab">
+      <div id="startBox" class="startBox" hidden>
+        <h2>Ready to start</h2>
+        <p id="startText"></p>
+        <p class="muted small">Check the Connection tab first if you have changed anything. Pressing Start opens the receiving port; your frontend can then connect.</p>
+        <div class="startRow">
+          <button id="bigStart" type="button" class="primary big">Start recording</button>
+          <label class="inline"><input type="checkbox" id="skipScreen"> Skip this screen next time (start recording as soon as ContextWeir opens)</label>
+        </div>
+      </div>
+      <div class="cols">
+        <div class="box">
+          <h2>Running</h2>
+          <dl id="status"></dl>
+        </div>
+        <div class="box">
+          <h2>This session</h2>
+          <dl id="stats"></dl>
+          <div id="switchedOff"></div>
+          <div id="byRule"></div>
+        </div>
+      </div>
+      <div class="box gapTop diagBox">
+        <h2>Something not working?</h2>
+        <p class="muted small">Problems show a code such as CW-PORT-TAKEN; Help explains each one. To ask someone for help, save a diagnostic report and attach it: it holds versions, settings and recent problems, never your prompts or replies, and nothing is sent anywhere.</p>
+        <button id="diagBtn" type="button">Save diagnostic report…</button>
+      </div>
+    </section>
+
+    <!-- SETTINGS TABS: filled in from the field list ContextWeir sends -->
+    <section id="tab-connection" class="tab" hidden>
+      <p class="muted small">ContextWeir forwards only to a model server on this computer. Cloud models (OpenRouter, Claude, OpenAI and the like) are not supported.</p>
+      <div class="form" data-form="connection"></div>
+      <p class="hint" id="frontendHint"></p>
+    </section>
+
+    <section id="tab-logs" class="tab" hidden>
+      <div class="form" data-form="logs"></div>
+      <div class="box gapTop">
+        <h2>Log folder now</h2>
+        <dl id="logsOverview"></dl>
+        <p class="muted small">Per-chat and per-card log limits and routing come later. Logs hold full prompts and replies in plain text: keep them private.</p>
+      </div>
+    </section>
+
+    <section id="tab-advanced" class="tab" hidden>
+      <div class="form" data-form="advanced"></div>
+      <div class="box gapTop">
+        <h2>Move or share your setup</h2>
+        <p class="muted small">One file with your settings and all your rule sets: a backup, a copy for another computer, or a setup to share. Folder settings belong to this computer (and often hold your name), so they go in only if you tick the box. Importing shows what would change before anything is saved.</p>
+        <div class="startRow">
+          <a id="setupExport" class="button" href="/api/setup/export" download>Export settings and rules</a>
+          <label class="inline"><input type="checkbox" id="setupFolders"> include folder settings</label>
+          <button id="setupImportBtn" type="button">Import a setup file…</button>
+          <input id="setupFile" type="file" accept=".json,application/json" hidden>
+        </div>
+      </div>
+    </section>
+
+    <!-- RULES -->
+    <section id="tab-rules" class="tab" hidden>
+      <div class="bar">
+        <h2>Flag rules</h2>
+        <span class="grow"></span>
+        <button id="addSet" type="button">+ New set</button>
+        <button id="importBtn" type="button">Import…</button>
+        <a id="exportAll" class="button" href="/api/rules/export" download>Export all</a>
+        <input id="importFile" type="file" accept=".json,application/json" hidden>
+      </div>
+      <p class="muted small">Changes save straight away and apply from the next turn. Untick a rule or a whole set to switch it off without deleting it. Hover a rule to read its note.</p>
+      <div id="message" class="message" hidden></div>
+      <div id="sets"></div>
+    </section>
+  </main>
+
+  <!-- Rule editor -->
+  <dialog id="ruleDialog">
+    <form id="ruleForm" method="dialog">
+      <h3 id="ruleTitle">Rule</h3>
+      <label>Name <input id="fName" maxlength="120" required></label>
+      <div class="row">
+        <label>Severity
+          <select id="fSeverity"><option value="note">note</option><option value="warning">warning</option><option value="serious">serious</option></select>
+        </label>
+      </div>
+      <fieldset>
+        <legend>Warn when</legend>
+        <div class="cond" id="mainCond"></div>
+      </fieldset>
+      <fieldset>
+        <legend>…unless any of these</legend>
+        <div id="unlessList"></div>
+        <button id="addUnless" type="button" class="small">+ Add exception</button>
+      </fieldset>
+      <label>Note (why this rule exists)
+        <textarea id="fNote" maxlength="500" rows="2"></textarea>
+      </label>
+      <div id="ruleProblems" class="message bad" hidden></div>
+      <div class="buttons">
+        <button value="cancel" type="button" id="ruleCancel">Cancel</button>
+        <button value="save" type="submit" class="primary">Save rule</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Import preview -->
+  <dialog id="importDialog">
+    <form method="dialog">
+      <h3>Import rules</h3>
+      <div id="importPreview"></div>
+      <fieldset>
+        <legend>How</legend>
+        <label class="inline"><input type="radio" name="importMode" value="merge" checked> Add beside my sets (same names get "(imported)")</label>
+        <label class="inline"><input type="radio" name="importMode" value="replace"> Replace all my sets with these</label>
+      </fieldset>
+      <div class="buttons">
+        <button type="button" id="importCancel">Cancel</button>
+        <button type="button" id="importConfirm" class="primary">Import</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="keysDialog">
+    <h3>Keyboard shortcuts</h3>
+    <table class="keys" id="keysTable"></table>
+    <p class="muted small">Single-key shortcuts do nothing while you are typing in a box.</p>
+    <div class="buttons"><button type="button" id="keysClose" class="primary">Close</button></div>
+  </dialog>
+
+  <!-- Setup import preview -->
+  <dialog id="setupDialog" class="wide">
+    <h3>Import a setup file</h3>
+    <div id="setupPreview"></div>
+    <fieldset>
+      <legend>What to import</legend>
+      <label class="inline"><input type="checkbox" id="setupApplySettings" checked> the settings listed above</label>
+      <label class="inline"><input type="checkbox" id="setupApplyFolders"> also the folder settings in the file</label>
+      <label class="inline"><input type="radio" name="setupRules" value="merge" checked> rule sets: add beside mine (same names get "(imported)")</label>
+      <label class="inline"><input type="radio" name="setupRules" value="replace"> rule sets: replace all mine with these</label>
+      <label class="inline"><input type="radio" name="setupRules" value="skip"> rule sets: leave mine as they are</label>
+    </fieldset>
+    <div class="buttons">
+      <button type="button" id="setupCancel">Cancel</button>
+      <button type="button" id="setupConfirm" class="primary">Import</button>
+    </div>
+  </dialog>
+
+  <!-- Diagnostic report: shown in full before it is saved -->
+  <dialog id="diagDialog" class="wide">
+    <h3>Diagnostic report</h3>
+    <p class="muted small">This is everything that goes in the file. It holds no prompts, replies or lorebook text. Nothing is sent anywhere: save the file and attach it yourself when you ask for help.</p>
+    <label class="inline"><input type="checkbox" id="diagFull"> Show full folder paths (they may contain your user name)</label>
+    <pre id="diagText" class="diag"></pre>
+    <div class="buttons">
+      <button type="button" id="diagCopy">Copy</button>
+      <a id="diagSave" class="button primary" download="contextweir-diagnostic.txt" href="#">Save to a file</a>
+      <button type="button" id="diagClose">Close</button>
+    </div>
+  </dialog>
+
+  <dialog id="aboutDialog">
+    <div id="aboutBody"></div>
+    <div class="buttons"><button type="button" id="aboutClose" class="primary">Close</button></div>
+  </dialog>
+
+  <script src="/ui.js"></script>
+</body>
+</html>

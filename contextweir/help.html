@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<!-- ContextWeir 0.5.6.0, built 25 Nov 2026. Part of the Wellspring tools.
+     Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
+     Licence: CC BY 4.0 (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ContextWeir help</title>
+<style>
+  body { margin: 0; background: #16181d; color: #e6e8ee; font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 28px 60px; }
+  h1 { font-size: 24px; margin: 0 0 4px; } h2 { font-size: 18px; margin: 30px 0 8px; color: #9cc6e4; border-bottom: 1px solid #333845; padding-bottom: 4px; }
+  h3 { font-size: 15px; margin: 18px 0 4px; }
+  p, li { color: #d4d8e2; } .muted { color: #9aa1b2; }
+  code, kbd { font: 13px ui-monospace, Consolas, monospace; background: #252932; border: 1px solid #333845; border-radius: 4px; padding: 0 4px; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 14px; }
+  td, th { border: 1px solid #333845; padding: 5px 8px; text-align: left; vertical-align: top; } th { background: #1e2128; }
+  .box { background: #1e2128; border: 1px solid #333845; border-left: 4px solid #d9a441; border-radius: 6px; padding: 8px 12px; margin: 10px 0; }
+  nav a { color: #9cc6e4; margin-right: 12px; } a { color: #9cc6e4; }
+  table.codes td:first-child { white-space: nowrap; }
+  tr:target td { background: #3a3320; }
+</style>
+</head>
+<body>
+<main>
+<h1>ContextWeir help</h1>
+<p class="muted">The recorder. Version 0.5.6.0 (prototype), built 25 Nov 2026. This file is also in the ContextWeir folder as <code>help.html</code>.</p>
+<nav><a href="#what">What it does</a><a href="#start">Start and stop</a><a href="#setup">Setting up</a><a href="#panel">The control panel</a><a href="#rules">Rules</a><a href="#settings">Settings</a><a href="#setup-file">Setup file</a><a href="#privacy">Privacy</a><a href="#trouble">Problems</a><a href="#codes">Error codes</a><a href="#checker">Checking files</a><a href="#report">Diagnostic report</a></nav>
+
+<h2 id="what">What it does</h2>
+<p>ContextWeir sits between your chat program (for example SillyTavern) and your model server (for example KoboldCpp). Everything passes through unchanged: your model sees exactly what it would have seen without ContextWeir. On the way through, ContextWeir saves each request and reply exactly as sent, and checks them against your <b>flag rules</b> (for example "warn if the reply starts with OOC").</p>
+<p>To look at what it saved, use <b>PromptAssay</b>, its companion: it takes each request apart so you can see every piece of the prompt.</p>
+<div class="box">ContextWeir only works with a model server on this computer. Cloud models (OpenRouter, Claude, OpenAI and the like) are not supported.</div>
+<h3 id="apis">Which APIs it records</h3>
+<p>Every request passes through, but only <b>generation requests</b> are saved: those sent to these addresses.</p>
+<table>
+  <tr><th>API in your frontend</th><th>Address</th><th>Tested</th></tr>
+  <tr><td>Chat Completion (SillyTavern's "Custom (OpenAI-compatible)", KoboldCpp)</td><td><code>/v1/chat/completions</code></td><td>yes</td></tr>
+  <tr><td>Text Completion (KoboldCpp, and other OpenAI-style servers)</td><td><code>/v1/completions</code></td><td>yes (made-up test data until a real capture)</td></tr>
+  <tr><td>KoboldCpp's own API ("KoboldAI Classic")</td><td><code>/api/v1/generate</code>, <code>/api/extra/generate/stream</code></td><td>yes (test data)</td></tr>
+  <tr><td>llama.cpp server's own API</td><td><code>/completion</code></td><td><b>untested</b>: no such server here</td></tr>
+  <tr><td>Ollama</td><td><code>/api/generate</code></td><td><b>untested</b>: no such server here</td></tr>
+</table>
+<p>If you use one of the untested ones, please tell us whether it works: a <a href="#report">diagnostic report</a> is the easiest way. If your frontend generates through an address not in this list, replies still come back but nothing is saved; ContextWeir notices and says so once per session (code <a href="#code-CW-ENDPOINT-UNKNOWN">CW-ENDPOINT-UNKNOWN</a>).</p>
+
+<h2 id="start">Starting and stopping</h2>
+<ul>
+  <li><b>Windows:</b> double-click the <b>ContextWeir</b> shortcut (made by <code>Create Shortcuts (Windows).bat</code> in the tools folder), or <code>Start ContextWeir.bat</code> in the ContextWeir folder.</li>
+  <li><b>Mac:</b> <code>launch/mac/Start ContextWeir.command</code>. The first time, right-click it and choose Open.</li>
+  <li><b>Linux:</b> <code>launch/linux/start-contextweir.sh</code>.</li>
+</ul>
+<p>Two things open: a <b>console window</b> (ContextWeir itself; each turn gets a line there) and the <b>control panel</b>. The panel opens on its <b>start screen</b>: nothing is recorded, and your frontend cannot connect, until you press <b>Start</b>. Tick <b>Skip this screen next time</b> to start recording as soon as ContextWeir opens (the panel still opens, and the start screen comes back by itself if the receiving port is taken).</p>
+<p>Starting it again while it runs only reopens the panel, and the launcher says so. To restart it, use <b>Restart</b> in the panel.</p>
+<p><b>To stop it,</b> press <b>Quit</b> in the panel: ContextWeir stops, and the console and the panel window close with it. Closing the console window also stops it. Closing only the panel window leaves ContextWeir recording; start it again with its Start file to bring the panel back.</p>
+
+<h2 id="setup">Setting up (once)</h2>
+<ol>
+  <li>Install <a href="https://nodejs.org">Node.js</a> (version 18 or newer) if you have not already.</li>
+  <li>Start your model server as usual (KoboldCpp listens on port 5001 by default).</li>
+  <li>Start ContextWeir. On the <b>Connection</b> tab, check the receiving port (<b>Check</b> says whether it is free) and the model server port (<b>Test</b> says whether your model server answers, and which version and model it has loaded). Save if you changed anything.</li>
+  <li>Press <b>Start</b>.</li>
+  <li>In SillyTavern, open API Connections, choose Chat Completion, Custom (OpenAI-compatible), and set the address to the one the Connection tab shows, for example <code>http://127.0.0.1:5012/v1</code>. Connect.</li>
+  <li>Play a turn. A line appears in the console, the panel counts it, and the turn shows up in PromptAssay.</li>
+</ol>
+<p>To stop recording for good, point SillyTavern back at your model server's address (for KoboldCpp, <code>http://127.0.0.1:5001/v1</code>).</p>
+<div class="box">Optional, on the <b>Logs</b> tab: set the <b>SillyTavern folder</b> (the one that holds <code>Start.bat</code>). ContextWeir then notes SillyTavern's version in each session, so PromptAssay can tell you which version a log was made with. It reads only that folder's <code>package.json</code>.</div>
+
+<h2 id="panel">The control panel</h2>
+<h3>The buttons</h3>
+<table>
+  <tr><th>Button</th><th>What it does</th></tr>
+  <tr><td><b>Start</b></td><td>Opens the receiving port and starts a new session. If another program has the port, nothing starts and the panel says so; the port never moves on its own, because your frontend is set to it.</td></tr>
+  <tr><td><b>Pause / Resume</b></td><td>While paused, turns still pass straight through to the model and the game keeps working, but nothing is saved. The panel counts how many passed through.</td></tr>
+  <tr><td><b>Stop</b></td><td>Closes the receiving port and ends the session. Your frontend gets errors until you press Start again. The panel stays open.</td></tr>
+  <tr><td><b>Restart</b></td><td>Applies every saved setting (ports, model address, folders) and starts a new session.</td></tr>
+  <tr><td><b>Quit</b></td><td>Stops recording and closes ContextWeir, its console and the panel window. (Closing only the panel window keeps ContextWeir recording.)</td></tr>
+</table>
+<p>The coloured label beside the version says the state: <b>Ready</b> (not recording), <b>Recording</b>, <b>Paused</b>, or <b>Port in use</b>.</p>
+<h3>The tabs</h3>
+<ul>
+  <li><b>Status:</b> the start screen while nothing is recording. While recording: the address your frontend connects to, where it forwards, where logs go, and the frontend and model server versions; then this session's numbers (requests, swipes and regenerates, flagged turns and how many per 100, average prompt size and reply time, how often each rule fired). The same numbers are saved in each session's <code>summary.json</code>, so you can compare a test before and after a change. A rule that took too long is listed in red as <b>switched off this session</b> (see <a href="#slow">slow rules</a>).</li>
+  <li><b>Connection:</b> the receiving port and the model server, with <b>Check</b> and <b>Test</b>.</li>
+  <li><b>Logs:</b> the log folder, how many sessions and turns to keep, the optional SillyTavern folder, and how big the log folder is now.</li>
+  <li><b>Rules:</b> your flag rules (below).</li>
+  <li><b>Advanced:</b> size limits and time limits.</li>
+</ul>
+<h3>Keyboard shortcuts</h3>
+<table>
+  <tr><th>Keys</th><th>What they do</th></tr>
+  <tr><td><code>Alt+S</code></td><td>Start recording</td></tr>
+  <tr><td><code>Alt+P</code></td><td>Pause or resume logging</td></tr>
+  <tr><td><code>Alt+R</code></td><td>Restart (apply saved settings, new session)</td></tr>
+  <tr><td><code>Alt+1</code> to <code>Alt+5</code></td><td>The Status, Connection, Logs, Rules and Advanced tabs</td></tr>
+  <tr><td><code>?</code></td><td>The list of shortcuts (also the <b>Keys</b> button)</td></tr>
+  <tr><td><code>Esc</code></td><td>Close a popup</td></tr>
+</table>
+<p class="muted">Stop and Quit have no shortcut on purpose: they cut your frontend off.</p>
+<p><b>Keys</b>, <b>Help</b> and <b>About</b> are at the top on every tab. About shows the version, what it was tested with and who wrote it.</p>
+
+<h2 id="rules">Flag rules</h2>
+<p>Rules are grouped in <b>sets</b> (for example "General", "Wellspring", "My horror card"). Changes save straight away and apply from the next turn.</p>
+<ul>
+  <li><b>Tick or untick</b> a rule, or a whole set, to switch it on or off without deleting it.</li>
+  <li><b>+ New set</b>, <b>Rename</b>, <b>Delete set</b>; <b>+ Add rule</b>, <b>Edit</b>, <b>Delete</b>.</li>
+  <li><b>Export</b> a set (or <b>Export all</b>) to share it as a small file. <b>Import…</b> shows what a file holds, and anything that will be refused, before you choose to add it beside your sets or replace them.</li>
+  <li>Every save keeps the previous <code>rules.json</code> as <code>rules.json.bak</code>.</li>
+</ul>
+<h3>Writing a rule</h3>
+<p>A rule reads like a sentence: <b>[what to check] [test] [value]</b>.</p>
+<table>
+  <tr><th>What to check</th><th>Meaning</th></tr>
+  <tr><td>the reply</td><td>what the model wrote back</td></tr>
+  <tr><td>the whole prompt</td><td>everything sent to the model</td></tr>
+  <tr><td>the player's last message</td><td>the newest message from you</td></tr>
+  <tr><td>the last message sent</td><td>the very last part of the prompt (often a system note or script request)</td></tr>
+</table>
+<p><b>Text completion</b> sends the whole prompt as one long string, so there "the last message sent" is the <b>last 2,000 characters</b> of the prompt and "the player's last message" is empty. Use <b>contains</b> rather than <b>starts with</b> on the last message, and write rules against the reply and the whole prompt, which work the same in both modes. The rule sets in <code>contextweir\rule_sets\</code> (General, and Wellspring with a "contains" line beside each "starts with" one) can be imported on the Rules tab.</p>
+<table>
+  <tr><th>Test</th><th>Fires when</th></tr>
+  <tr><td>starts with</td><td>the text starts with the value (ignoring case and leading spaces)</td></tr>
+  <tr><td>contains</td><td>the value appears anywhere (ignoring case)</td></tr>
+  <tr><td>does not contain</td><td>the value is missing</td></tr>
+  <tr><td>matches pattern (advanced)</td><td>a regular expression matches; tick "ignore case" if wanted</td></tr>
+  <tr><td>does not match pattern (advanced)</td><td>a regular expression does not match</td></tr>
+</table>
+<p><b>Severity</b> (note, warning, serious) sets the colour in PromptAssay. <b>Exceptions</b> ("…unless any of these") skip the rule in special cases, for example: <i>the reply does not contain "[Time:" … unless the last message sent starts with "[Private system request"</i>. The <b>note</b> explains why the rule exists; it travels with exported files.</p>
+<h3 id="slow">Slow rules</h3>
+<p>Some patterns can take a very long time on unlucky text. ContextWeir refuses the usual problem shapes when you save, and also runs all rules with a time limit (<code>ruleTimeoutMs</code>, 1 second per turn by default). If a rule goes over, it is stopped, named in that turn's flags and in the console, and switched off until ContextWeir restarts or you save the rules again. Your game is never slowed: the reply has already gone back before rules run.</p>
+
+<h2 id="settings">Settings</h2>
+<p>Change settings on the panel's tabs and press <b>Save</b> on that tab. Each setting says when it takes effect: <b>applies now</b> (the next turn uses it) or <b>needs Restart</b> (press Restart, or Stop and Start). A save with any problem is refused as a whole, with the reason, and nothing is written. Every save keeps the previous file as <code>settings.json.bak</code>.</p>
+<p>The same settings live in <code>settings.json</code>, which you can also edit with a text editor while ContextWeir is closed; wrong values stop it at start with a message saying which.</p>
+<table>
+  <tr><th>Tab</th><th>Setting (in settings.json)</th><th>As shipped</th><th>Takes effect</th><th>What it does</th></tr>
+  <tr><td>Connection</td><td>Receiving port (<code>relayPort</code>)</td><td>5012</td><td>Restart</td><td>the address your frontend connects to</td></tr>
+  <tr><td>Connection</td><td>Model server (<code>targetHost</code>)</td><td>127.0.0.1</td><td>Restart</td><td>must be this computer</td></tr>
+  <tr><td>Connection</td><td>Model server port (<code>targetPort</code>)</td><td>5001</td><td>Restart</td><td>your model server</td></tr>
+  <tr><td>Logs</td><td>Log folder (<code>logsDir</code>)</td><td>logs</td><td>Restart</td><td>where sessions are saved; the folder above it must exist</td></tr>
+  <tr><td>Logs</td><td>Sessions to keep (<code>keepSessions</code>)</td><td>30</td><td>now</td><td>older sessions are deleted when a session starts (ContextWeir's own folders only)</td></tr>
+  <tr><td>Logs</td><td>Most turns per session (<code>maxRecordsPerSession</code>)</td><td>5000</td><td>now</td><td>after this many, turns still pass through but are not saved</td></tr>
+  <tr><td>Logs</td><td>SillyTavern folder (<code>sillyTavernDir</code>)</td><td>empty</td><td>Restart</td><td>optional; only its <code>package.json</code> is read, for the version</td></tr>
+  <tr><td>Advanced</td><td><code>maxRequestMB</code> / <code>maxReplyMB</code></td><td>32 / 16</td><td>now</td><td>size limits</td></tr>
+  <tr><td>Advanced</td><td>Model timeout (<code>upstreamTimeoutSec</code>)</td><td>600</td><td>now</td><td>give up on a model that goes silent</td></tr>
+  <tr><td>Advanced</td><td>Rule time limit (<code>ruleTimeoutMs</code>)</td><td>1000</td><td>now</td><td>time limit for all rules on one turn</td></tr>
+  <tr><td>Status</td><td>Show the start screen (<code>showStartScreen</code>)</td><td>yes</td><td>next start</td><td>the "Skip this screen next time" box</td></tr>
+</table>
+<p class="muted">Not yet: per-chat and per-card log limits and routing (sending different cards to different folders).</p>
+
+<h2 id="setup-file">Moving or sharing your setup (settings and rules in one file)</h2>
+<p>On the <b>Advanced</b> tab, <b>Export settings and rules</b> saves one file (<code>contextweir-setup_….json</code>) with your settings and every rule set: a backup, a copy for another computer, or a setup to share with someone. Folder settings (the log folder and the SillyTavern folder) belong to one computer and usually hold your name, so they go in only if you tick <b>include folder settings</b>.</p>
+<p><b>Import a setup file…</b> never changes anything straight away. It shows a preview: each setting that would change (now, and from the file, and whether it applies now or needs Restart), the rule sets in the file, and anything that cannot be used. Then you choose: the settings or not, the folder settings or not, and for the rule sets add beside yours, replace all yours, or leave yours alone. Everything goes through the same checks as the panel, so a file cannot point ContextWeir at a model server off this computer. The previous <code>settings.json</code> and <code>rules.json</code> are kept as <code>.bak</code>.</p>
+<p>A single rule set still exports and imports on its own from the Rules tab (that is the file to ship with a character card). PromptAssay has nothing to export: its only settings are the folders it reads.</p>
+
+<h2 id="privacy">Privacy and safety</h2>
+<div class="box">Logs hold <b>full prompts and replies in plain text</b>, including secrets in your cards and anything you typed. Keep the logs folder private and never share it.</div>
+<ul>
+  <li>ContextWeir only listens on this computer (127.0.0.1) and only forwards to a model server on this computer.</li>
+  <li>Web pages in your browser cannot read your logs, change your settings or rules, or press the panel's buttons through it; only the panel's own window can. The panel cannot point ContextWeir at another computer.</li>
+  <li>It never saves request headers (where API keys travel), installs nothing, downloads nothing and needs no internet.</li>
+  <li>Never expose SillyTavern or these tools to the internet. If you use remote access (e.g. Tailscale), keep SillyTavern's whitelist or login on.</li>
+</ul>
+
+<h2 id="trouble">When something goes wrong</h2>
+<h3>"ContextWeir needs Node.js"</h3><p>Install Node.js 18 or newer from nodejs.org, then start again.</p>
+<h3>"The receiving port … is already in use" (label: Port in use; CW-PORT-TAKEN)</h3><p>Another program (or a second ContextWeir, or an older logger) uses that port. Close it and press Start, or choose another port on the Connection tab, save, press Restart, and use the new address in SillyTavern.</p>
+<h3>SillyTavern says it cannot connect</h3><p>Is the label <b>Recording</b>? On the start screen, or after Stop, the receiving port is closed: press Start. Check the address in SillyTavern matches the Connection tab. Check your model server with <b>Test</b>: the console also says "could not reach the model server" if it is not running.</p>
+<h3>I changed a setting and nothing happened</h3><p>Settings marked <b>needs Restart</b> wait for Restart; a yellow bar says so, with a <b>Restart now</b> button.</p>
+<h3>No window opens</h3><p>The launcher opens your default browser; Chrome, Edge, Brave and Vivaldi give an app-style window, others a normal tab. If nothing opens, look in the console for the line <code>window: http://127.0.0.1:…</code> and open that address yourself (the port changes each start).</p>
+<h3>I double-clicked Start and only the window came back</h3><p>ContextWeir was already running, so the launcher only reopened its panel (it says so). Use <b>Restart</b> in the panel to restart it.</p>
+<h3>Nothing appears in the console when I play</h3><p>SillyTavern is still pointed at the model server directly, or recording is <b>Paused</b>.</p>
+<h3>A rule fires on every turn</h3><p>Open it in the editor and add an exception, or untick it. In PromptAssay, the rule filter shows exactly where it fired.</p>
+<h3>The logs folder is getting big</h3><p>The Logs tab shows its size. Lower <b>Sessions to keep</b> or <b>Most turns per session</b>.</p>
+
+<h2 id="codes">Error codes</h2>
+<p>Every known problem has a short code that never changes, shown beside the plain message: in the console, in the window, in the red bar (with a <b>What does this mean?</b> button that opens this table) and in the error your frontend receives. If you ask someone for help, quote the code.</p>
+<!-- ERROR CODES START (made by dev/errors_to_help.js from lib/error_codes.js: edit that file, not this table) -->
+<table class="codes">
+<tr><th>Code</th><th>What it means</th><th>What to do</th></tr>
+<tr id="CW-PORT-TAKEN"><td><code>CW-PORT-TAKEN</code></td><td><b>The receiving port is already in use.</b> Start could not open the receiving port because another program has it: often another copy of ContextWeir, the old logger, or something else on that port.</td><td>Close whatever has the port (look for another ContextWeir console), then press Start again. Or choose another port on the Connection tab and change the address in your frontend to match. ContextWeir never moves the port on its own.</td></tr>
+<tr id="CW-PORT-FAILED"><td><code>CW-PORT-FAILED</code></td><td><b>The receiving port could not be opened.</b> The operating system refused to open the receiving port for a reason other than it being in use.</td><td>Try another port from 1024 to 65535 on the Connection tab. A security program may be blocking it.</td></tr>
+<tr id="CW-WINDOW-FAILED"><td><code>CW-WINDOW-FAILED</code></td><td><b>The control panel could not open.</b> ContextWeir could not open a port for its own window, so it stopped.</td><td>Start it again. If it keeps happening, restart the computer; a security program may be blocking local ports.</td></tr>
+<tr id="CW-SESSION-FOLDER"><td><code>CW-SESSION-FOLDER</code></td><td><b>No session folder could be made.</b> Recording could not start because ContextWeir could not create a session folder in the log folder.</td><td>Check the log folder on the Logs tab exists and that you can write to it (not a read-only or cloud-only folder), then press Start.</td></tr>
+<tr id="CW-LOG-WRITE"><td><code>CW-LOG-WRITE</code></td><td><b>A turn could not be saved.</b> A request and its reply passed through, but writing them to records.jsonl failed (a full disk, or the file locked by another program).</td><td>Free some disk space or close programs that might hold the log file open. Turns keep passing through to the model meanwhile.</td></tr>
+<tr id="CW-MODEL-UNREACHABLE"><td><code>CW-MODEL-UNREACHABLE</code></td><td><b>The model server did not answer.</b> ContextWeir could not reach the model server at the address on the Connection tab, so your frontend got an error.</td><td>Start KoboldCpp (or your model server) and check its port matches "Model server port" (KoboldCpp's default is 5001). The Test button on the Connection tab checks it.</td></tr>
+<tr id="CW-MODEL-TIMEOUT"><td><code>CW-MODEL-TIMEOUT</code></td><td><b>The model went silent.</b> The model server sent nothing for longer than the model timeout, so ContextWeir gave up on that request.</td><td>A very slow model or a long reply may need a longer "Model timeout" (Advanced tab). Check KoboldCpp has not frozen or run out of memory.</td></tr>
+<tr id="CW-MODEL-NOT-ANSWERING"><td><code>CW-MODEL-NOT-ANSWERING</code></td><td><b>The model server did not answer when the session started.</b> At the start of a session ContextWeir asks the model server for its version. It got no answer, so no version was noted. Recording still works.</td><td>Usually harmless if KoboldCpp was started after ContextWeir. If turns fail too, see CW-MODEL-UNREACHABLE.</td></tr>
+<tr id="CW-REQUEST-TOO-LARGE"><td><code>CW-REQUEST-TOO-LARGE</code></td><td><b>A request was too large.</b> The frontend sent a request larger than "Largest request (MB)", so it was refused.</td><td>Raise "Largest request (MB)" on the Advanced tab if your prompts really are that large.</td></tr>
+<tr id="CW-ENDPOINT-UNKNOWN"><td><code>CW-ENDPOINT-UNKNOWN</code></td><td><b>Turns are passing through but not being recorded.</b> Your frontend is generating through an address ContextWeir does not record (the address is shown beside the code). Replies still come back, but nothing is saved for those turns.</td><td>Check your frontend's API type. ContextWeir records Chat Completion, Text Completion, KoboldCpp's own API (KoboldAI Classic), llama.cpp's /completion and Ollama's /api/generate (the last two untested). If you use another server or API, send a diagnostic report so its address can be added.</td></tr>
+<tr id="CW-REFUSED-HOST"><td><code>CW-REFUSED-HOST</code></td><td><b>A request with a strange address was refused.</b> Something sent a request whose Host header was not this computer. This is how web pages try DNS-rebinding tricks; ContextWeir refuses them.</td><td>Nothing to do if you did not expect it. Point your frontend at http://127.0.0.1:&lt;port&gt;/v1, not a computer name.</td></tr>
+<tr id="CW-REFUSED-ORIGIN"><td><code>CW-REFUSED-ORIGIN</code></td><td><b>A request from a web page was refused.</b> A page open in your browser (or another local web app) tried to send a request. Only programs, and the panel's own window for settings, are allowed.</td><td>Nothing to do if you did not expect it. If your frontend runs in a browser and was refused, tell us: SillyTavern sends from its server, not the page.</td></tr>
+<tr id="CW-SETTINGS-BAD-JSON"><td><code>CW-SETTINGS-BAD-JSON</code></td><td><b>settings.json is not valid JSON.</b> The settings file could not be read (often a missing comma or quote after editing it by hand).</td><td>Fix the file, or delete it and start ContextWeir again to get the defaults (settings.json.bak holds the previous version). "node contextweir.js --check" points at the problem.</td></tr>
+<tr id="CW-SETTINGS-PROBLEMS"><td><code>CW-SETTINGS-PROBLEMS</code></td><td><b>settings.json has problems.</b> One or more settings are out of range, unknown, or point somewhere ContextWeir will not write. The list names each one.</td><td>Fix the named settings in the panel (or in the file while ContextWeir is closed). "node contextweir.js --check" lists them.</td></tr>
+<tr id="CW-SETTINGS-WRITE"><td><code>CW-SETTINGS-WRITE</code></td><td><b>settings.json could not be saved.</b> The panel checked your settings but could not write the file.</td><td>Check the ContextWeir folder is not read-only and that no other program has settings.json open.</td></tr>
+<tr id="CW-SILLYTAVERN-FOLDER"><td><code>CW-SILLYTAVERN-FOLDER</code></td><td><b>The SillyTavern folder was left out.</b> The optional SillyTavern folder (used only to note its version) has no package.json, so it was left out for this run. Recording is not affected.</td><td>On the Logs tab, choose the folder that holds SillyTavern's Start.bat, or leave the setting empty.</td></tr>
+<tr id="CW-RULES-MISSING"><td><code>CW-RULES-MISSING</code></td><td><b>rules.json was not found.</b> There is no rules.json, so no flag rules are checked. Recording still works.</td><td>Import a rule file on the Rules tab, or add a set there; saving creates rules.json.</td></tr>
+<tr id="CW-RULES-BAD-JSON"><td><code>CW-RULES-BAD-JSON</code></td><td><b>rules.json is not valid JSON.</b> The rule file could not be read, so no flag rules are checked. Recording still works.</td><td>rules.json.bak holds the previous version. "node contextweir.js --check-rules rules.json" points at the problem.</td></tr>
+<tr id="CW-RULES-PROBLEMS"><td><code>CW-RULES-PROBLEMS</code></td><td><b>Some rules could not be used.</b> Some rules in the file were refused (an unknown test, an empty value, a pattern that could run very slowly...). The others work.</td><td>The Rules tab lists each refused rule and why. Edit or delete it there.</td></tr>
+<tr id="CW-RULES-WRITE"><td><code>CW-RULES-WRITE</code></td><td><b>rules.json could not be saved.</b> The rules were checked but the file could not be written.</td><td>Check the ContextWeir folder is not read-only and that no other program has rules.json open.</td></tr>
+<tr id="CW-RULE-TIMEOUT"><td><code>CW-RULE-TIMEOUT</code></td><td><b>A rule took too long and was switched off.</b> One rule took longer than the rule time limit on a turn, so it was switched off for this session. Play was never delayed.</td><td>Edit that rule's pattern (simpler, or plain text instead of a pattern) and save the rules to try it again.</td></tr>
+<tr id="CW-RULE-WORKER"><td><code>CW-RULE-WORKER</code></td><td><b>The rule checker stopped.</b> The thread that checks the rules failed and was started again. That turn may be missing its flags.</td><td>Usually harmless. If it repeats, save a diagnostic report and send it with a description of your rules.</td></tr>
+<tr id="CW-RUNNING-FILE"><td><code>CW-RUNNING-FILE</code></td><td><b>running.json could not be written.</b> The Start file finds a running ContextWeir through running.json. Writing it failed, so the Start file may open the wrong window.</td><td>Check the ContextWeir folder is not read-only.</td></tr>
+<tr id="UNKNOWN"><td><code>UNKNOWN</code></td><td><b>Something unexpected went wrong.</b> A problem with no code of its own.</td><td>Save a diagnostic report and send it with a description of what you were doing.</td></tr>
+</table>
+<!-- ERROR CODES END -->
+
+<h2 id="checker">Checking files, and help for AI assistants</h2>
+<p>If you edit <code>settings.json</code> or a rule file by hand (or an AI assistant does it for you), check it before starting ContextWeir. In a terminal, in the ContextWeir folder:</p>
+<table>
+<tr><td><code>node contextweir.js --check</code></td><td>checks <code>settings.json</code> and <code>rules.json</code></td></tr>
+<tr><td><code>node contextweir.js --check-settings &lt;file&gt;</code></td><td>checks one settings file</td></tr>
+<tr><td><code>node contextweir.js --check-rules &lt;file&gt;</code></td><td>checks one rule file, e.g. before you share it with a card</td></tr>
+<tr><td><code>node contextweir.js --schema settings|rules|setup</code></td><td>prints a JSON Schema (the same ones are in the <code>schemas</code> folder)</td></tr>
+</table>
+<p>These run exactly the checks ContextWeir uses at start-up and in this panel, list every problem, and never start recording, open a port or change a file. Exit code 0 means no problems, 1 problems found, 2 a file could not be read, 3 a wrong option. Edit the files only while ContextWeir is closed: while it runs, the panel keeps its own copy and its next save replaces the file.</p>
+<p><code>AI_HELPERS.md</code> in the tools folder is a guide written for AI assistants (Claude Code and the like): the folder layout, every setting with its limits, the rule format with examples, the log format, the safe way to make changes, and what an assistant must never do (point ContextWeir off this computer, delete or share logs).</p>
+
+<h2 id="report">Diagnostic report</h2>
+<p>To ask someone for help, use <b>Save diagnostic report</b> (the panel's Status tab, under "Something not working?"). It makes one small text file with: ContextWeir's version and build date, your Node.js version and operating system, the browser showing the window, the settings in use, the current state, the SillyTavern and model server versions seen, the session's numbers, how many rules you have and any that were refused or switched off, the log folder's size, the recent problems with their codes, and the last few dozen console lines.</p>
+<ul>
+  <li>It <b>never</b> holds a prompt, a reply or lorebook text (rule patterns are left out of error messages too).</li>
+  <li>Folder paths are shortened: your home folder is shown as <code>&lt;home&gt;</code>, because on Windows it usually holds your name. Tick <b>Show full folder paths</b> if the helper needs them.</li>
+  <li>The window shows the whole report before you save it. <b>Save to a file</b> saves exactly that text; <b>Copy</b> puts it on the clipboard.</li>
+  <li>Nothing is sent anywhere, ever: there is no automatic crash reporting. You decide whether to attach the file.</li>
+</ul>
+
+<p class="muted" style="margin-top:40px">Design and direction by Harahel-Whot; written by Claude Opus 5.5 (Anthropic) for the Wellspring project. Code: MIT licence; help, docs and icons: CC BY 4.0 (see LICENSE.txt).</p>
+</main>
+</body>
+</html>
