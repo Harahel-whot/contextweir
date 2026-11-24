@@ -51,3 +51,9 @@ user's settings.json / rules.json, running.json, *.bak, contextweir\logs\ (real 
 the .lnk shortcuts. Pushes are made from a Claude workspace copy (the PC cannot run git for
 Claude): stage the tools folder, make the change, push, then copy the changed TEXT files back to
 the PC. Credit name in every file: Harahel-Whot (was HarahelWhot until 25 Nov).
+
+TEST-ONLY SWITCH (25 Nov, 0.6.0.0 / 0.4.1.0): WS_HIDE_THANKS=1 hides the thank-you note in both
+tools, so the UI suites' scripted clicks do not land on it. helpers.startTool sets it by default; a
+suite that tests the note passes WS_HIDE_THANKS: '0'. test_remote_thanks.js covers the outside-
+address setting (a stand-in model on this machine's non-loopback address counts as "another
+computer"; https with a certificate made by openssl at run time) and both thank-you notes.

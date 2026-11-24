@@ -1,4 +1,4 @@
-// ContextWeir 0.5.6.0, built 25 Nov 2026. Part of the Wellspring tools.
+// ContextWeir 0.6.0.0, built 25 Nov 2026. Part of the Wellspring tools.
 // Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
 // Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
 
@@ -54,6 +54,11 @@ const CODES = {
     title: 'The model server did not answer when the session started',
     means: 'At the start of a session ContextWeir asks the model server for its version. It got no answer, so no version was noted. Recording still works.',
     fix: 'Usually harmless if KoboldCpp was started after ContextWeir. If turns fail too, see CW-MODEL-UNREACHABLE.',
+  },
+  'CW-REMOTE-NOT-CONFIRMED': {
+    title: 'Waiting for the outside-address warning',
+    means: 'ContextWeir is set to send your chats to a model server on another computer, and nothing is recorded or sent until you accept the warning about that.',
+    fix: 'Read the warning in the panel and press OK, or untick "Allow a model server on another computer" on the Connection tab and press Restart. Before unattended runs, tick "Don\'t show this again" in the warning once (it then applies to that address only).',
   },
   'CW-REQUEST-TOO-LARGE': {
     title: 'A request was too large',

@@ -1,4 +1,4 @@
-/* ContextWeir 0.5.6.0, built 25 Nov 2026. Part of the Wellspring tools.
+/* ContextWeir 0.6.0.0, built 25 Nov 2026. Part of the Wellspring tools.
    Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
    Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir */
 /* ContextWeir window. Plain CSS, no external fonts or files. */
@@ -126,3 +126,16 @@ pre.diag { max-height: 55vh; overflow: auto; background: var(--panel2); border: 
 dialog h4 { margin: 12px 0 4px; font-size: 14px; }
 dialog table.keys th { text-align: left; color: var(--muted); font-weight: normal; padding: 2px 8px 2px 0; }
 dialog table.keys td { padding: 2px 8px 2px 0; vertical-align: top; }
+
+/* The thank-you note and the outside-address warning (0.6) */
+dialog.thanks { width: min(560px, 94vw); }
+dialog.thanks p { margin: 8px 0; }
+dialog.thanks .links a { color: var(--accent); }
+dialog.thanks .disclaimer { border-top: 1px solid var(--line); padding-top: 8px; }
+dialog.remote { width: min(620px, 94vw); border-color: var(--warning); }
+dialog.remote h3 { color: var(--warning); }
+dialog.remote ul { margin: 6px 0 10px 18px; padding: 0; }
+dialog.remote li { margin: 4px 0; }
+#remoteUrlShown { word-break: break-all; }
+.buttons.spread { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.inputRow input.wide { width: min(420px, 60vw); }

@@ -1,6 +1,6 @@
 # ContextWeir and PromptAssay: a guide for AI assistants
 
-ContextWeir 0.5.6.0 and PromptAssay 0.4.0.0, built 25 Nov 2026. Part of the Wellspring tools.
+ContextWeir 0.6.0.0 and PromptAssay 0.4.1.0, built 25 Nov 2026. Part of the Wellspring tools.
 Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
 Licence: CC BY 4.0 (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
 
@@ -79,8 +79,10 @@ do not compile. **Always run `--check` after editing a file.**
 
 ### Never do these
 
-- Never set `targetHost` to anything but this computer (`127.0.0.1`, `localhost`, `::1`). The
-  tools are local-only by design; the checker refuses other hosts. Never add API keys anywhere.
+- Never set `targetHost` to anything but this computer (`127.0.0.1`, `localhost`, `::1`); the
+  checker refuses other hosts. Never turn on `allowRemoteModel`, set `remoteUrl` or set
+  `remoteWarningAcceptedFor` for the person: sending their chats to another computer is their
+  decision, made in the panel's warning. Never add API keys anywhere (the frontend holds them).
 - Never delete, move or edit anything in `logs/` (the person may need those sessions; ContextWeir
   deletes its own old sessions by the "Sessions to keep" setting).
 - Never copy, upload, paste or summarise log contents anywhere outside this computer, and never
@@ -107,10 +109,15 @@ do not compile. **Always run `--check` after editing a file.**
 | `upstreamTimeoutSec` | integer 1-86400 | 600 | now | give up on a model that sends nothing this long |
 | `ruleTimeoutMs` | integer 1-60000 | 1000 | now | a rule slower than this on one turn is switched off for the session |
 | `showStartScreen` | true / false | true | now | false: start recording as soon as ContextWeir opens |
+| `allowRemoteModel` | true / false | false | restart | true: forward to `remoteUrl` (another computer); needs the warning accepted in the panel |
+| `remoteUrl` | http(s) URL, max 300 chars, or empty | empty | restart | up to (not including) `/v1`; no user/password, `?` or `#`; not this computer |
+| `remoteWarningAcceptedFor` | the accepted `remoteUrl`, or empty | empty | now | set only by the warning's "Don't show this again"; a panel save may only empty it |
+| `showThanks` | true / false | true | now | the thank-you note when the panel opens |
 
 Unknown keys are refused. PromptAssay's `promptassay/settings.json` has only `logDirs` (a list of
 folders with sessions), `worldsDir` and `charactersDir` (SillyTavern's lorebook and character
-folders, for labelling) and `showDemo` (true/false). It is read at start; restart PromptAssay
+folders, for labelling), `showDemo` (true/false), `instructDir` and `showThanks` (true/false; the
+thank-you note). It is read at start; restart PromptAssay
 after editing it.
 
 ## Flag rules (rules.json, or a rule file to import)
@@ -183,8 +190,9 @@ Rules tab (they see a preview, then choose to add it beside their sets or replac
 
 The panel's Advanced tab exports and imports one file with both. Format: `"format":
 "contextweir-setup"`, `"version": 1`, `"settings": { ... }`, `"rules": { a rule file }`, plus
-`exported`, `from` and `foldersIncluded`. Importing shows a preview of each change; nothing
-outside this computer can be set through it. Schema: `schemas/setup.schema.json`.
+`exported`, `from` and `foldersIncluded`. Importing shows a preview of each change. A file may
+carry `allowRemoteModel` and `remoteUrl`, but never `remoteWarningAcceptedFor`: the warning is
+always shown on this computer before anything is sent. Schema: `schemas/setup.schema.json`.
 
 ## Reading the logs
 

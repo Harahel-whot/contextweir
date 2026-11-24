@@ -1,5 +1,5 @@
 #!/bin/bash
-# PromptAssay 0.4.0.0, built 25 Nov 2026. Part of the Wellspring tools.
+# PromptAssay 0.4.1.0, built 25 Nov 2026. Part of the Wellspring tools.
 # Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
 # Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
 # Opens $1 (a 127.0.0.1 address) in your default browser.

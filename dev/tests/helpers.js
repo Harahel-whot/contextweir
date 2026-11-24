@@ -32,7 +32,8 @@ function counter() {
 
 // Start a tool. Resolves once its window is listening: { proc, port, url, out() }.
 function startTool(script, env = {}, timeoutMs = 8000) {
-  const proc = spawn(process.execPath, [script], { env: { ...process.env, ...env } });
+  // The thank-you note is hidden unless a suite asks for it (WS_HIDE_THANKS: '0').
+  const proc = spawn(process.execPath, [script], { env: { ...process.env, WS_HIDE_THANKS: '1', ...env } });
   let out = '';
   proc.stdout.on('data', d => { out += d; });
   proc.stderr.on('data', d => { out += d; });

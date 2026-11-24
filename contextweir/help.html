@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- ContextWeir 0.5.6.0, built 25 Nov 2026. Part of the Wellspring tools.
+<!-- ContextWeir 0.6.0.0, built 25 Nov 2026. Part of the Wellspring tools.
      Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
      Licence: CC BY 4.0 (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir -->
 <html lang="en">
@@ -24,13 +24,13 @@
 <body>
 <main>
 <h1>ContextWeir help</h1>
-<p class="muted">The recorder. Version 0.5.6.0 (prototype), built 25 Nov 2026. This file is also in the ContextWeir folder as <code>help.html</code>.</p>
-<nav><a href="#what">What it does</a><a href="#start">Start and stop</a><a href="#setup">Setting up</a><a href="#panel">The control panel</a><a href="#rules">Rules</a><a href="#settings">Settings</a><a href="#setup-file">Setup file</a><a href="#privacy">Privacy</a><a href="#trouble">Problems</a><a href="#codes">Error codes</a><a href="#checker">Checking files</a><a href="#report">Diagnostic report</a></nav>
+<p class="muted">The recorder. Version 0.6.0.0 (prototype), built 25 Nov 2026. This file is also in the ContextWeir folder as <code>help.html</code>.</p>
+<nav><a href="#what">What it does</a><a href="#start">Start and stop</a><a href="#setup">Setting up</a><a href="#panel">The control panel</a><a href="#rules">Rules</a><a href="#settings">Settings</a><a href="#remote">Another computer</a><a href="#thanks">Thank-you note</a><a href="#setup-file">Setup file</a><a href="#privacy">Privacy</a><a href="#trouble">Problems</a><a href="#codes">Error codes</a><a href="#checker">Checking files</a><a href="#report">Diagnostic report</a></nav>
 
 <h2 id="what">What it does</h2>
 <p>ContextWeir sits between your chat program (for example SillyTavern) and your model server (for example KoboldCpp). Everything passes through unchanged: your model sees exactly what it would have seen without ContextWeir. On the way through, ContextWeir saves each request and reply exactly as sent, and checks them against your <b>flag rules</b> (for example "warn if the reply starts with OOC").</p>
 <p>To look at what it saved, use <b>PromptAssay</b>, its companion: it takes each request apart so you can see every piece of the prompt.</p>
-<div class="box">ContextWeir only works with a model server on this computer. Cloud models (OpenRouter, Claude, OpenAI and the like) are not supported.</div>
+<div class="box">As shipped, ContextWeir only forwards to a model server on this computer. Since 0.6 you can allow a model server on another computer or a cloud service (OpenRouter and the like); a warning explains the risk first. See <a href="#remote">A model server on another computer</a>.</div>
 <h3 id="apis">Which APIs it records</h3>
 <p>Every request passes through, but only <b>generation requests</b> are saved: those sent to these addresses.</p>
 <table>
@@ -133,8 +133,10 @@
 <table>
   <tr><th>Tab</th><th>Setting (in settings.json)</th><th>As shipped</th><th>Takes effect</th><th>What it does</th></tr>
   <tr><td>Connection</td><td>Receiving port (<code>relayPort</code>)</td><td>5012</td><td>Restart</td><td>the address your frontend connects to</td></tr>
-  <tr><td>Connection</td><td>Model server (<code>targetHost</code>)</td><td>127.0.0.1</td><td>Restart</td><td>must be this computer</td></tr>
+  <tr><td>Connection</td><td>Model server (<code>targetHost</code>)</td><td>127.0.0.1</td><td>Restart</td><td>this computer (used unless the next setting is ticked)</td></tr>
   <tr><td>Connection</td><td>Model server port (<code>targetPort</code>)</td><td>5001</td><td>Restart</td><td>your model server</td></tr>
+  <tr><td>Connection</td><td>Allow a model server on another computer (<code>allowRemoteModel</code>)</td><td>no</td><td>Restart</td><td>send everything to the address below instead; a warning first</td></tr>
+  <tr><td>Connection</td><td>Model server on another computer (<code>remoteUrl</code>)</td><td>empty</td><td>Restart</td><td>http:// or https://, up to (not including) /v1</td></tr>
   <tr><td>Logs</td><td>Log folder (<code>logsDir</code>)</td><td>logs</td><td>Restart</td><td>where sessions are saved; the folder above it must exist</td></tr>
   <tr><td>Logs</td><td>Sessions to keep (<code>keepSessions</code>)</td><td>30</td><td>now</td><td>older sessions are deleted when a session starts (ContextWeir's own folders only)</td></tr>
   <tr><td>Logs</td><td>Most turns per session (<code>maxRecordsPerSession</code>)</td><td>5000</td><td>now</td><td>after this many, turns still pass through but are not saved</td></tr>
@@ -143,20 +145,38 @@
   <tr><td>Advanced</td><td>Model timeout (<code>upstreamTimeoutSec</code>)</td><td>600</td><td>now</td><td>give up on a model that goes silent</td></tr>
   <tr><td>Advanced</td><td>Rule time limit (<code>ruleTimeoutMs</code>)</td><td>1000</td><td>now</td><td>time limit for all rules on one turn</td></tr>
   <tr><td>Status</td><td>Show the start screen (<code>showStartScreen</code>)</td><td>yes</td><td>next start</td><td>the "Skip this screen next time" box</td></tr>
+  <tr><td>(popup)</td><td>Show the thank-you note (<code>showThanks</code>)</td><td>yes</td><td>next opening</td><td>the note's "Don't show this again" box</td></tr>
+  <tr><td>(popup)</td><td>Warning accepted for (<code>remoteWarningAcceptedFor</code>)</td><td>empty</td><td>now</td><td>set only by the warning's "Don't show this again", for one address</td></tr>
 </table>
 <p class="muted">Not yet: per-chat and per-card log limits and routing (sending different cards to different folders).</p>
 
+<h2 id="remote">A model server on another computer (since 0.6)</h2>
+<p>Out of the box ContextWeir only talks to a model server on this computer. If your model runs elsewhere (another PC at home, over Tailscale, or a cloud service such as OpenRouter), tick <b>Allow a model server on another computer</b> on the Connection tab, type its address in <b>Model server on another computer</b>, press <b>Save</b>, then <b>Restart</b>.</p>
+<ul>
+  <li><b>The address</b> is everything up to, not including, <code>/v1</code>: for example <code>http://192.168.1.20:5001</code> for KoboldCpp on another PC, or <code>https://openrouter.ai/api</code>. ContextWeir puts what your frontend asks for after it (<code>…/api/v1/chat/completions</code>). No user names, passwords, <code>?</code> or <code>#</code> in it, and not this computer (use the fields above for that).</li>
+  <li><b>Your API key</b>: put it in your frontend as usual. It travels with each request, and ContextWeir passes it on without saving or logging it. Cookies and browser-only headers are not passed on.</li>
+  <li><b>https</b> addresses are encrypted and the service's certificate is always checked; there is no way to switch that off. Plain <b>http</b> is readable by anyone on the network path: use it only on a network you trust.</li>
+  <li>ContextWeir never sends anything there on its own: no version check (the Status tab says "remote server: version not asked"). Only your frontend's requests, and the <b>Test</b> button when you press it (one request for <code>/v1/models</code>, without your key, so a cloud service usually answers "401": that still shows it is there).</li>
+</ul>
+<h3 id="warning">The warning</h3>
+<p>Before anything is sent to another computer, a warning explains the risk: your full chats, cards and lorebook text cross the network; on plain http anyone on the path can read them; the other computer sees everything; a mistyped address could send them to a stranger; and your API key is passed on. It appears when you tick the box, and whenever ContextWeir is about to start recording with the setting on (Start, Restart, or opening straight into recording).</p>
+<p><b>OK</b> starts recording. <b>Cancel</b> starts nothing: ContextWeir does not quietly fall back to this computer, because your frontend would then be talking to a different model than you think. Untick the setting and press Restart to go back to this computer.</p>
+<p><b>Don't show this again</b> applies to that one address. Change the address and the warning comes back. A shared setup file never carries it. To see it again for the same address, press <b>Show it again</b> on the Connection tab. Before an unattended run with the start screen skipped, tick it once: otherwise ContextWeir waits for someone to answer the warning and records nothing.</p>
+
+<h2 id="thanks">The thank-you note</h2>
+<p>When the panel opens, a short note thanks you for using ContextWeir and lists where to send feedback (GitHub, and a Discord channel to come). It never stops anything: ContextWeir keeps relaying behind it. Tick <b>Don't show this again</b> to hide it for good (<code>showThanks</code> in settings.json). If the outside-address warning is due too, the note comes first and the warning last.</p>
+
 <h2 id="setup-file">Moving or sharing your setup (settings and rules in one file)</h2>
 <p>On the <b>Advanced</b> tab, <b>Export settings and rules</b> saves one file (<code>contextweir-setup_….json</code>) with your settings and every rule set: a backup, a copy for another computer, or a setup to share with someone. Folder settings (the log folder and the SillyTavern folder) belong to one computer and usually hold your name, so they go in only if you tick <b>include folder settings</b>.</p>
-<p><b>Import a setup file…</b> never changes anything straight away. It shows a preview: each setting that would change (now, and from the file, and whether it applies now or needs Restart), the rule sets in the file, and anything that cannot be used. Then you choose: the settings or not, the folder settings or not, and for the rule sets add beside yours, replace all yours, or leave yours alone. Everything goes through the same checks as the panel, so a file cannot point ContextWeir at a model server off this computer. The previous <code>settings.json</code> and <code>rules.json</code> are kept as <code>.bak</code>.</p>
+<p><b>Import a setup file…</b> never changes anything straight away. It shows a preview: each setting that would change (now, and from the file, and whether it applies now or needs Restart), the rule sets in the file, and anything that cannot be used. Then you choose: the settings or not, the folder settings or not, and for the rule sets add beside yours, replace all yours, or leave yours alone. Everything goes through the same checks as the panel. A file can carry the "another computer" setting and address (the preview shows them), but never an accepted warning: the warning still comes before anything is sent. The previous <code>settings.json</code> and <code>rules.json</code> are kept as <code>.bak</code>.</p>
 <p>A single rule set still exports and imports on its own from the Rules tab (that is the file to ship with a character card). PromptAssay has nothing to export: its only settings are the folders it reads.</p>
 
 <h2 id="privacy">Privacy and safety</h2>
 <div class="box">Logs hold <b>full prompts and replies in plain text</b>, including secrets in your cards and anything you typed. Keep the logs folder private and never share it.</div>
 <ul>
-  <li>ContextWeir only listens on this computer (127.0.0.1) and only forwards to a model server on this computer.</li>
-  <li>Web pages in your browser cannot read your logs, change your settings or rules, or press the panel's buttons through it; only the panel's own window can. The panel cannot point ContextWeir at another computer.</li>
-  <li>It never saves request headers (where API keys travel), installs nothing, downloads nothing and needs no internet.</li>
+  <li>ContextWeir only listens on this computer (127.0.0.1). It forwards to a model server on this computer unless you allow another one; then a warning comes first, and https certificates are always checked.</li>
+  <li>Web pages in your browser cannot read your logs, change your settings or rules, accept the warning, or press the panel's buttons through it; only the panel's own window can.</li>
+  <li>It never saves request headers (where API keys travel), installs nothing and downloads nothing. It needs no internet unless you point it at a model server elsewhere.</li>
   <li>Never expose SillyTavern or these tools to the internet. If you use remote access (e.g. Tailscale), keep SillyTavern's whitelist or login on.</li>
 </ul>
 
@@ -184,6 +204,7 @@
 <tr id="CW-MODEL-UNREACHABLE"><td><code>CW-MODEL-UNREACHABLE</code></td><td><b>The model server did not answer.</b> ContextWeir could not reach the model server at the address on the Connection tab, so your frontend got an error.</td><td>Start KoboldCpp (or your model server) and check its port matches "Model server port" (KoboldCpp's default is 5001). The Test button on the Connection tab checks it.</td></tr>
 <tr id="CW-MODEL-TIMEOUT"><td><code>CW-MODEL-TIMEOUT</code></td><td><b>The model went silent.</b> The model server sent nothing for longer than the model timeout, so ContextWeir gave up on that request.</td><td>A very slow model or a long reply may need a longer "Model timeout" (Advanced tab). Check KoboldCpp has not frozen or run out of memory.</td></tr>
 <tr id="CW-MODEL-NOT-ANSWERING"><td><code>CW-MODEL-NOT-ANSWERING</code></td><td><b>The model server did not answer when the session started.</b> At the start of a session ContextWeir asks the model server for its version. It got no answer, so no version was noted. Recording still works.</td><td>Usually harmless if KoboldCpp was started after ContextWeir. If turns fail too, see CW-MODEL-UNREACHABLE.</td></tr>
+<tr id="CW-REMOTE-NOT-CONFIRMED"><td><code>CW-REMOTE-NOT-CONFIRMED</code></td><td><b>Waiting for the outside-address warning.</b> ContextWeir is set to send your chats to a model server on another computer, and nothing is recorded or sent until you accept the warning about that.</td><td>Read the warning in the panel and press OK, or untick "Allow a model server on another computer" on the Connection tab and press Restart. Before unattended runs, tick "Don't show this again" in the warning once (it then applies to that address only).</td></tr>
 <tr id="CW-REQUEST-TOO-LARGE"><td><code>CW-REQUEST-TOO-LARGE</code></td><td><b>A request was too large.</b> The frontend sent a request larger than "Largest request (MB)", so it was refused.</td><td>Raise "Largest request (MB)" on the Advanced tab if your prompts really are that large.</td></tr>
 <tr id="CW-ENDPOINT-UNKNOWN"><td><code>CW-ENDPOINT-UNKNOWN</code></td><td><b>Turns are passing through but not being recorded.</b> Your frontend is generating through an address ContextWeir does not record (the address is shown beside the code). Replies still come back, but nothing is saved for those turns.</td><td>Check your frontend's API type. ContextWeir records Chat Completion, Text Completion, KoboldCpp's own API (KoboldAI Classic), llama.cpp's /completion and Ollama's /api/generate (the last two untested). If you use another server or API, send a diagnostic report so its address can be added.</td></tr>
 <tr id="CW-REFUSED-HOST"><td><code>CW-REFUSED-HOST</code></td><td><b>A request with a strange address was refused.</b> Something sent a request whose Host header was not this computer. This is how web pages try DNS-rebinding tricks; ContextWeir refuses them.</td><td>Nothing to do if you did not expect it. Point your frontend at http://127.0.0.1:&lt;port&gt;/v1, not a computer name.</td></tr>
@@ -212,7 +233,7 @@
 <tr><td><code>node contextweir.js --schema settings|rules|setup</code></td><td>prints a JSON Schema (the same ones are in the <code>schemas</code> folder)</td></tr>
 </table>
 <p>These run exactly the checks ContextWeir uses at start-up and in this panel, list every problem, and never start recording, open a port or change a file. Exit code 0 means no problems, 1 problems found, 2 a file could not be read, 3 a wrong option. Edit the files only while ContextWeir is closed: while it runs, the panel keeps its own copy and its next save replaces the file.</p>
-<p><code>AI_HELPERS.md</code> in the tools folder is a guide written for AI assistants (Claude Code and the like): the folder layout, every setting with its limits, the rule format with examples, the log format, the safe way to make changes, and what an assistant must never do (point ContextWeir off this computer, delete or share logs).</p>
+<p><code>AI_HELPERS.md</code> in the tools folder is a guide written for AI assistants (Claude Code and the like): the folder layout, every setting with its limits, the rule format with examples, the log format, the safe way to make changes, and what an assistant must never do (turn on the outside-address setting or accept its warning for you, delete or share logs).</p>
 
 <h2 id="report">Diagnostic report</h2>
 <p>To ask someone for help, use <b>Save diagnostic report</b> (the panel's Status tab, under "Something not working?"). It makes one small text file with: ContextWeir's version and build date, your Node.js version and operating system, the browser showing the window, the settings in use, the current state, the SillyTavern and model server versions seen, the session's numbers, how many rules you have and any that were refused or switched off, the log folder's size, the recent problems with their codes, and the last few dozen console lines.</p>

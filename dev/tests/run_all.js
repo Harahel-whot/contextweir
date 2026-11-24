@@ -14,7 +14,7 @@ const SUITES = [
   'test_contextweir.js', 'test_rules_api.js', 'test_rule_timeout.js', 'test_rules_ui.js',
   'test_panel_api.js', 'test_panel_ui.js', 'test_promptassay.js', 'test_pieces.js', 'test_pieces_ui.js',
   'test_live_ui.js', 'test_versions.js', 'test_keys_ui.js',
-  'test_diagnostics.js', 'test_config_io.js', 'test_demo.js', 'test_check_cli.js', 'test_security.js', 'test_text_prompt.js',
+  'test_diagnostics.js', 'test_config_io.js', 'test_demo.js', 'test_check_cli.js', 'test_security.js', 'test_text_prompt.js', 'test_remote_thanks.js',
 ];
 
 // The folders the suites make for themselves (never the tools' own folders).

@@ -1,5 +1,5 @@
 #!/bin/bash
-# ContextWeir 0.5.6.0, built 25 Nov 2026. Part of the Wellspring tools.
+# ContextWeir 0.6.0.0, built 25 Nov 2026. Part of the Wellspring tools.
 # Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
 # Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
 # Linux: run this to start ContextWeir (unless it is already running) and open its window.

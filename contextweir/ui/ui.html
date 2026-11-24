@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- ContextWeir 0.5.6.0, built 25 Nov 2026. Part of the Wellspring tools.
+<!-- ContextWeir 0.6.0.0, built 25 Nov 2026. Part of the Wellspring tools.
      Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
      Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir -->
 <html lang="en">
@@ -206,6 +206,44 @@
   <dialog id="aboutDialog">
     <div id="aboutBody"></div>
     <div class="buttons"><button type="button" id="aboutClose" class="primary">Close</button></div>
+  </dialog>
+
+  <!-- The thank-you note (user, 25 Nov): shown when the panel opens, until "Don't show this again". -->
+  <dialog id="thanksDialog" class="thanks">
+    <h3 id="thanksTitle">Thank you for using ContextWeir!</h3>
+    <p>It's a small, free tool made by one hobbyist, and I'd love to hear how it works for you:
+      what helped, what broke, what's missing.</p>
+    <p class="links"><strong>Feedback:</strong> <span id="thanksLinks"></span></p>
+    <p class="muted small" id="thanksVersion"></p>
+    <p class="muted small disclaimer">Provided as is, with no warranty (MIT licence). Not made by or affiliated with
+      SillyTavern, KoboldCpp or Anthropic. Your logs stay on this computer unless you share them, and they hold your
+      full chats, so check them before you do.</p>
+    <div class="buttons spread">
+      <label class="inline"><input type="checkbox" id="thanksHide"> Don't show this again</label>
+      <button type="button" id="thanksClose" class="primary">Close</button>
+    </div>
+  </dialog>
+
+  <!-- The outside-address warning (user, 25 Nov): before any chat is sent to another computer. -->
+  <dialog id="remoteDialog" class="remote">
+    <h3>Send your chats to another computer?</h3>
+    <p>ContextWeir is set to forward everything to <strong id="remoteUrlShown"></strong>. Before you go on:</p>
+    <ul>
+      <li>Every prompt and reply crosses the network: your full chats, character cards and lorebook text.</li>
+      <li id="remoteHttpLine">This address is plain <strong>http</strong>: anyone on the network path can read it.</li>
+      <li>The other computer, and whoever runs it, sees everything you send.</li>
+      <li>A mistyped address could send your chats to a stranger's machine. Check it above.</li>
+      <li>ContextWeir never saves your API key, but it passes it on to this address with every request.</li>
+    </ul>
+    <p class="muted small">Logs are still written on this computer only. Untick "Allow a model server on another
+      computer" on the Connection tab to go back to this computer only.</p>
+    <div class="buttons spread">
+      <label class="inline"><input type="checkbox" id="remoteHide"> Don't show this again (for this address)</label>
+      <span>
+        <button type="button" id="remoteCancel">Cancel</button>
+        <button type="button" id="remoteOk" class="primary">OK</button>
+      </span>
+    </div>
   </dialog>
 
   <script src="/ui.js"></script>

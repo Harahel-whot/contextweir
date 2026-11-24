@@ -7,7 +7,7 @@
 import json, os, re, sys
 ROOT = sys.argv[1]
 BUILT = '25 Nov 2026'
-VER = {'contextweir': '0.5.6.0', 'promptassay': '0.4.0.0'}
+VER = {'contextweir': '0.6.0.0', 'promptassay': '0.4.1.0'}
 NAME = {'contextweir': 'ContextWeir', 'promptassay': 'PromptAssay'}
 DIRECTOR = 'Harahel-Whot'
 MODEL = 'Claude Opus 5.5 (Anthropic)'

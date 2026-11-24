@@ -48,7 +48,7 @@ const PORTS = { model: 6701, relay: 6702, relay2: 6712 };
 
   // Connection tab: fields, Check and Test
   await click('#tabs [data-tab=connection]'); await H.sleep(300);
-  ok(await js(`return document.querySelectorAll('[data-form=connection] .field').length`) === 3, 'Connection tab: three fields');
+  ok(await js(`return document.querySelectorAll('[data-form=connection] .field').length`) === 5, 'Connection tab: five fields (3 + the two for another computer)');
   ok(/Cloud models .* not supported/.test(await text('#tab-connection')), 'Connection tab says cloud models are not supported');
   await js(`[...document.querySelectorAll('[data-form=connection] button')].find(x => x.textContent === 'Check').click()`); await H.sleep(500);
   ok(/this ContextWeir/.test(await js(`return document.querySelectorAll('[data-form=connection] .result')[0].textContent`)), 'Check: the receiving port is ours');
@@ -106,7 +106,7 @@ const PORTS = { model: 6701, relay: 6702, relay2: 6712 };
 
   // About and Help
   await click('#aboutBtn'); await H.sleep(400);
-  ok(/0\.5\.\d\.\d/.test(await text("#aboutBody")) && /Harahel-Whot/.test(await text('#aboutBody')), 'About shows the version and credit');
+  ok(/0\.\d\.\d\.\d/.test(await text("#aboutBody")) && /Harahel-Whot/.test(await text('#aboutBody')), 'About shows the version and credit');
   await click('#aboutClose');
 
   // narrow window

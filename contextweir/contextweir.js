@@ -1,4 +1,4 @@
-// ContextWeir 0.5.6.0, built 25 Nov 2026. Part of the Wellspring tools.
+// ContextWeir 0.6.0.0, built 25 Nov 2026. Part of the Wellspring tools.
 // Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
 // Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
 
@@ -27,8 +27,11 @@
 // child processes.
 //
 // SECURITY (see the transparency package's security pass):
-//   - listens on 127.0.0.1 only; forwards only to a model server on this
-//     computer (loopback); the panel cannot loosen that
+//   - listens on 127.0.0.1 only; forwards to a model server on this computer
+//     (loopback) unless "Allow a model server on another computer" is on
+//     (since 0.6, user 25 Nov). Then a warning must be accepted before any
+//     recording starts (per address), https certificates are always checked,
+//     and no request is ever sent there except the frontend's own
 //   - checks the Host and Origin headers on every request (blocks web pages
 //     and DNS-rebinding tricks from reaching it through your browser)
 //   - only the panel's own window (same port) can change settings or rules,
@@ -59,13 +62,14 @@
 'use strict';
 
 const http = require('http');
+const https = require('https');
 const net = require('net');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
 const TOOL = 'ContextWeir';
-const VERSION = '0.5.6.0';
+const VERSION = '0.6.0.0';
 const BUILT = '25 Nov 2026';   // the date this version's code last changed; shown beside the version
 const LOG_FORMAT = { format: 'contextweir-log', version: 1 };
 
@@ -89,16 +93,23 @@ const ABOUT = {
       + 'frontend and model server versions)',
     'rule files: contextweir-rules version 1',
   ],
-  worksWith: 'any OpenAI-compatible frontend and a model server on this computer (e.g. KoboldCpp)',
+  worksWith: 'any OpenAI-compatible frontend and a model server on this computer (e.g. KoboldCpp); '
+    + 'since 0.6 also one on another computer or a cloud service, after a warning',
   testedWith: ['SillyTavern 1.19.0 (chat completion, streamed and not streamed)'],
   needs: 'Node.js 18 or newer; Edge, Chrome or Chromium for the app window (any browser works as a tab)',
-  writtenBy: [{ versions: '0.1 to 0.5.6.0', by: 'Claude Opus 5.5 (Anthropic)' }],
+  writtenBy: [{ versions: '0.1 to 0.6.0.0', by: 'Claude Opus 5.5 (Anthropic)' }],
   directedBy: 'Harahel-Whot',
   credit: 'Design and direction by Harahel-Whot; code, docs and testing written with Claude (Anthropic).',
   licence: 'MIT for the code, CC BY 4.0 for the help, docs and icons: free to use, change and share, '
     + 'as long as the credit is kept. See LICENSE.txt.',
-  privacy: 'Runs only on this computer and sends prompts only to a model server on this computer. '
-    + 'Logs hold full prompts and replies in plain text; keep them private.',
+  privacy: 'Runs only on this computer. Prompts go only to the model server you set: on this computer '
+    + 'unless you allow another one (a warning explains the risk first). Logs hold full prompts and '
+    + 'replies in plain text; keep them private.',
+  // Where to send feedback (thank-you popup and About). An empty address shows as "coming soon".
+  links: {
+    github: 'https://github.com/Harahel-Whot/contextweir',
+    discord: '',
+  },
 };
 
 
@@ -138,6 +149,10 @@ const DEFAULTS = {
   ruleTimeoutMs: 1000,      // longest the flag rules may take on one turn
   sillyTavernDir: '',       // optional: SillyTavern's folder, read only for its version number
   showStartScreen: true,    // false: start recording at once (the panel still opens)
+  allowRemoteModel: false,  // true: forward to remoteUrl, a model server on another computer (0.6)
+  remoteUrl: '',            // e.g. http://192.168.1.20:5001 or https://openrouter.ai/api
+  remoteWarningAcceptedFor: '',   // the remote address whose warning was accepted with "Don't show this again"
+  showThanks: true,         // the thank-you popup when the panel opens
 };
 
 // What the panel shows for each setting: its tab, label, help line and when it
@@ -152,12 +167,24 @@ const FIELDS = [
     key: 'targetHost', tab: 'connection', type: 'choice', choices: ['127.0.0.1', 'localhost', '::1'],
     applies: 'restart',
     label: 'Model server (this computer)',
-    help: 'ContextWeir only forwards to a model server on this computer.',
+    help: 'Used unless "Allow a model server on another computer" is ticked below.',
   },
   {
     key: 'targetPort', tab: 'connection', type: 'port', applies: 'restart',
     label: 'Model server port',
     help: "KoboldCpp's default is 5001.",
+  },
+  {
+    key: 'allowRemoteModel', tab: 'connection', type: 'bool', applies: 'restart',
+    label: 'Allow a model server on another computer',
+    help: 'Off: only this computer. On: your chats go over the network to the address below '
+      + '(another PC, Tailscale or a cloud service). A warning explains the risk before anything is sent.',
+  },
+  {
+    key: 'remoteUrl', tab: 'connection', type: 'url', applies: 'restart',
+    label: 'Model server on another computer',
+    help: 'The address up to (not including) /v1, e.g. http://192.168.1.20:5001 or https://openrouter.ai/api. '
+      + 'Your frontend sends its API key with each request; ContextWeir passes it on and never saves it.',
   },
   {
     key: 'logsDir', tab: 'logs', type: 'folder', applies: 'restart',
@@ -204,6 +231,16 @@ const FIELDS = [
     label: 'Show the start screen',
     help: 'Untick to start recording as soon as ContextWeir opens. '
       + 'The screen still comes back if the receiving port is taken.',
+  },
+  {
+    key: 'showThanks', tab: 'start', type: 'bool', applies: 'now',
+    label: 'Show the thank-you note',
+    help: 'The note shown when the panel opens. Untick "Don\'t show this again" in it, or here.',
+  },
+  {
+    key: 'remoteWarningAcceptedFor', tab: 'start', type: 'accepted', applies: 'now',
+    label: 'Outside-address warning accepted for',
+    help: 'Set only by the warning\'s "Don\'t show this again" (for that one address). Empty it to see the warning again.',
   },
 ];
 const RESTART_KEYS = FIELDS.filter(f => f.applies === 'restart').map(f => f.key);
@@ -260,6 +297,13 @@ function checkSettings(user) {
     if (f.type === 'choice' && !(typeof v === 'string' && LOOPBACK_NAMES.includes(v))) {
       problems.push(`${f.label}: must be this computer (127.0.0.1, localhost or ::1)`);
     }
+    if (f.type === 'url' || f.type === 'accepted') {
+      if (typeof v !== 'string') { problems.push(`${f.label}: an address, or empty`); continue; }
+      if (v !== '') {
+        const why = remoteUrlProblem(v);
+        if (why) problems.push(`${f.label}: ${why}`);
+      }
+    }
 
     if (f.type === 'folder') {
       if (typeof v !== 'string') { problems.push(`${f.label}: a folder name or path`); continue; }
@@ -292,7 +336,112 @@ function checkSettings(user) {
   if (s.relayPort === s.targetPort) {
     problems.push('The receiving port and the model server port cannot be the same');
   }
+  if (s.allowRemoteModel === true && s.remoteUrl === '') {
+    problems.push('Model server on another computer: needed when "Allow a model server on another computer" is ticked');
+  }
   return { settings: s, problems };
+}
+
+// --- Outside addresses (0.6, user 25 Nov) ---------------------------------------
+// A remote model server is given as one address: http or https, a host, an optional port and an
+// optional path that goes in front of every request path (https://openrouter.ai/api + /v1/...).
+// Refused: user names or passwords in it (they would be logged and shown), a query or #part, odd
+// characters in the path, "..", and any address on this computer (use the fields above for those).
+
+// An IPv6 address as eight numbers (null if it is not one). Handles "::" and a dotted IPv4 tail.
+function ipv6Groups(h) {
+  if (net.isIPv6(h) !== true) return null;
+  let text = h;
+  const v4 = text.match(/(\d+\.\d+\.\d+\.\d+)$/);
+  if (v4) {
+    const b = v4[1].split('.').map(Number);
+    text = text.slice(0, -v4[1].length) + ((b[0] << 8) | b[1]).toString(16) + ':' + ((b[2] << 8) | b[3]).toString(16);
+  }
+  const [head, tail] = text.includes('::') ? text.split('::') : [text, null];
+  const left = head ? head.split(':') : [];
+  const right = tail ? tail.split(':') : [];
+  const fill = tail === null ? [] : Array(8 - left.length - right.length).fill('0');
+  return [...left, ...fill, ...right].map(x => parseInt(x || '0', 16));
+}
+
+// What kind of address a host is: 'loopback' (this computer), 'linklocal' (169.254.x.x, fe80::,
+// including cloud metadata addresses), or '' for anything else. IPv4 inside IPv6 is unwrapped.
+function hostKind(hostname) {
+  const h = String(hostname).toLowerCase().replace(/^\[|\]$/g, '').replace(/\.+$/, '');
+  if (h === 'localhost' || h.endsWith('.localhost')) return 'loopback';
+  let v4 = net.isIPv4(h) ? h.split('.').map(Number) : null;
+  const g = ipv6Groups(h);
+  if (g) {
+    if (g.every(x => x === 0) || (g.slice(0, 7).every(x => x === 0) && g[7] === 1)) return 'loopback';
+    if ((g[0] & 0xffc0) === 0xfe80) return 'linklocal';
+    if (g.slice(0, 5).every(x => x === 0) && (g[5] === 0xffff || g[5] === 0)) v4 = [g[6] >> 8, g[6] & 255, g[7] >> 8, g[7] & 255];
+  }
+  if (v4) {
+    if (v4[0] === 127 || v4[0] === 0) return 'loopback';
+    if (v4[0] === 169 && v4[1] === 254) return 'linklocal';
+  }
+  return '';
+}
+function isLoopbackHost(hostname) { return hostKind(hostname) === 'loopback'; }
+
+// Only the scheme and computer name of an address, for the console and the diagnostic report
+// (a path can hold a token).
+function shortAddress(url) {
+  try { const u = new URL(url); return `${u.protocol}//${u.host}`; } catch (_) { return '(an address)'; }
+}
+
+function remoteUrlProblem(v) {
+  if (v.length > 300) return 'at most 300 characters';
+  if (/[\0-\x20\x7f\\]/.test(v)) return 'no spaces, control characters or backslashes';
+  // Letters outside plain ASCII can disguise an address (a Cyrillic "о" in "openrouter"): refused.
+  if (/[^\x21-\x7e]/.test(v)) return 'plain letters only (a look-alike letter can disguise an address; use the xn-- form)';
+  let u;
+  try { u = new URL(v); } catch (_) { return 'not an address (start it with http:// or https://)'; }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return 'must start with http:// or https://';
+  if (u.username || u.password) return 'no user name or password in the address (your frontend sends the API key)';
+  if (u.search || u.hash || v.includes('?') || v.includes('#')) return 'no ? or # part';
+  if (!u.hostname) return 'no computer name in it';
+  // The computer name must read exactly as it will be used (no %-codes, no hidden default port).
+  const typedHost = v.replace(/^https?:\/\//i, '').split('/')[0].toLowerCase();
+  if (typedHost !== u.host.toLowerCase()) return `write it in its plain form: ${u.protocol}//${u.host}`;
+  const kind = hostKind(u.hostname);
+  if (kind === 'loopback') return 'that is this computer: untick "Allow a model server on another computer" and use the fields above';
+  if (kind === 'linklocal') return 'link-local addresses (169.254.x.x, fe80::, cloud metadata) are refused';
+  // The path as typed (the parser would quietly fold "a/../b" into "b"), and as parsed.
+  const typedPath = v.replace(/^https?:\/\/[^/]*/i, '');
+  const p = u.pathname;
+  if (!/^[A-Za-z0-9/._~-]*$/.test(p) || !/^[A-Za-z0-9/._~-]*$/.test(typedPath)
+    || typedPath.split('/').some(seg => seg === '..' || seg === '.')) return 'the path part has characters ContextWeir does not accept';
+  return '';
+}
+
+// Where requests go, worked out from the settings in use.
+//   { remote: false, host, port, label }   or
+//   { remote: true, protocol, hostname, port, basePath, hostHeader, label }
+function modelTarget(s) {
+  if (s.allowRemoteModel && s.remoteUrl) {
+    const u = new URL(s.remoteUrl);
+    const secure = u.protocol === 'https:';
+    return {
+      remote: true, secure,
+      hostname: u.hostname.replace(/^\[|\]$/g, ''),
+      port: u.port ? Number(u.port) : (secure ? 443 : 80),
+      basePath: u.pathname.replace(/\/+$/, ''),
+      hostHeader: u.host,
+      label: s.remoteUrl.replace(/\/+$/, ''),
+    };
+  }
+  return { remote: false, host: s.targetHost, port: s.targetPort, label: `${s.targetHost}:${s.targetPort}` };
+}
+
+// Has the person accepted the warning for the remote address now in use? Either in this run (OK in
+// the popup) or for good, for that exact address ("Don't show this again").
+let remoteAcceptedThisRun = '';   // the address OK was pressed for, since ContextWeir started
+
+function remoteWarningNeeded() {
+  if (!(settings.allowRemoteModel && settings.remoteUrl)) return false;
+  const url = settings.remoteUrl;
+  return !(remoteAcceptedThisRun === url || savedSettings.remoteWarningAcceptedFor === url);
 }
 
 // For use at start-up and on Restart: a problem with an optional setting (the
@@ -450,6 +599,9 @@ function schemaFor(kind) {
     if (f.type === 'bool') prop.type = 'boolean';
     if (f.type === 'choice') Object.assign(prop, { type: 'string', enum: LOOPBACK_NAMES });
     if (f.type === 'folder') Object.assign(prop, { type: 'string', maxLength: 400 });
+    if (f.type === 'url' || f.type === 'accepted') {
+      Object.assign(prop, { type: 'string', maxLength: 300, pattern: '^(https?://.+)?$' });
+    }
     settingsProperties[f.key] = prop;
   }
   const settingsSchema = { type: 'object', properties: settingsProperties, additionalProperties: false };
@@ -984,6 +1136,16 @@ function startSession() {
   pruneSessions(logsDir, dir);
   saveSummary();
 
+  // A remote model server is never asked anything ContextWeir sends on its own (user, 25 Nov):
+  // only the frontend's own requests go there. The summary notes the address instead.
+  const target = modelTarget(settings);
+  session.stats.target = target.label;
+  if (target.remote) {
+    session.stats.modelServer = { remote: true, address: target.label, reachable: null, note: 'remote server: version not asked' };
+    saveSummary();
+    return session;
+  }
+
   // Ask the model server for its version in the background; note it if this
   // session is still the current one when the answer comes.
   const thisSession = session;
@@ -1172,7 +1334,7 @@ function relayRequest(req, res) {
   const maxRequestBytes = settings.maxRequestMB * 1024 * 1024;
   const maxReplyBytes = settings.maxReplyMB * 1024 * 1024;
   const timeoutSec = settings.upstreamTimeoutSec;
-  const target = { host: settings.targetHost, port: settings.targetPort };
+  const target = modelTarget(settings);
   const sess = session;
 
   const chunks = [];
@@ -1198,11 +1360,24 @@ function relayRequest(req, res) {
     if (req.method === 'POST' && !isGeneration && looksLikeGeneration(body)) noteUnknownEndpoint(sess, req.url);
 
     const headers = withoutHopHeaders(req.headers);
-    const bareHost = String(target.host).replace(/^\[|\]$/g, '');   // "[::1]" -> "::1"
-    headers.host = `${bareHost === '::1' ? '[::1]' : bareHost}:${target.port}`;
     headers['content-length'] = body.length;
-
-    const upstream = http.request({ host: bareHost, port: target.port, path: req.url, method: req.method, headers });
+    let upstream;
+    if (target.remote) {
+      // Another computer: only what the frontend itself sends goes on (its API key included).
+      // Browser-only headers and cookies are dropped. https always checks the certificate.
+      for (const k of Object.keys(headers)) {
+        if (k === 'cookie' || k === 'origin' || k === 'referer' || k === 'forwarded' || k === 'x-real-ip'
+          || k.startsWith('sec-fetch-') || k.startsWith('x-forwarded-')) delete headers[k];
+      }
+      headers['accept-encoding'] = 'identity';   // plain replies, so the log stays readable
+      headers.host = target.hostHeader;
+      const options = { host: target.hostname, port: target.port, path: target.basePath + req.url, method: req.method, headers };
+      upstream = target.secure ? https.request({ ...options, rejectUnauthorized: true }) : http.request(options);
+    } else {
+      const bareHost = String(target.host).replace(/^\[|\]$/g, '');   // "[::1]" -> "::1"
+      headers.host = `${bareHost === '::1' ? '[::1]' : bareHost}:${target.port}`;
+      upstream = http.request({ host: bareHost, port: target.port, path: req.url, method: req.method, headers });
+    }
 
     // One timer covers both "no answer" and "went silent mid-reply": it is
     // set again every time a piece of the reply arrives.
@@ -1216,7 +1391,9 @@ function relayRequest(req, res) {
     upstream.on('response', up => {
       const kept = [];
       let keptBytes = 0;
-      res.writeHead(up.statusCode, withoutHopHeaders(up.headers));
+      const replyHeaders = withoutHopHeaders(up.headers);
+      if (target.remote) delete replyHeaders['set-cookie'];   // a remote server's cookies stay out of the frontend
+      res.writeHead(up.statusCode, replyHeaders);
       up.on('data', chunk => {
         armTimer();
         res.write(chunk);
@@ -1242,11 +1419,12 @@ function relayRequest(req, res) {
       clearTimeout(timer);
       const timedOut = e.message === 'timeout';
       const code = timedOut ? 'CW-MODEL-TIMEOUT' : 'CW-MODEL-UNREACHABLE';
-      diag.note(code, timedOut ? `${timeoutSec} s` : `${target.host}:${target.port} ${e.code || e.message}`);
+      diag.note(code, timedOut ? `${timeoutSec} s` : `${target.remote ? 'remote' : target.label} ${e.code || e.message}`);
       if (!res.headersSent) {
         refuse(res, timedOut ? 504 : 502, diag.withCode(code, timedOut
           ? `the model sent nothing for ${timeoutSec} s`
-          : `could not reach the model server on port ${target.port}`));
+          : (target.remote ? `could not reach the model server at ${target.label} (${e.code || 'error'})`
+            : `could not reach the model server on port ${target.port}`)));
       } else {
         res.end();
       }
@@ -1325,6 +1503,18 @@ function startRelay() {
 function openRelay() {
   return new Promise(resolve => {
     if (relay) return resolve({ ok: true });
+    // A model server on another computer: nothing opens until its warning is accepted.
+    if (remoteWarningNeeded()) {
+      state = 'ready';
+      lastErrorCode = '';
+      lastError = '';
+      diag.note('CW-REMOTE-NOT-CONFIRMED', 'waiting for the warning to be accepted');
+      console.log(`  waiting: ContextWeir is set to send your chats to ${shortAddress(settings.remoteUrl)}. `
+        + 'Read the warning in the panel and press OK to start (CW-REMOTE-NOT-CONFIRMED)');
+      return resolve({ ok: false, needsRemoteOk: true, error: diag.withCode('CW-REMOTE-NOT-CONFIRMED',
+        `Not recording: ContextWeir is set to send your chats to ${settings.remoteUrl}. Accept the warning to start, `
+        + 'or untick "Allow a model server on another computer" on the Connection tab.') });
+    }
     const server = http.createServer(handleRelay);
     server.on('connection', socket => {
       sockets.add(socket);
@@ -1362,7 +1552,9 @@ function openRelay() {
       }
       state = 'recording';
       writeRunning();
-      console.log(`  recording: frontend -> http://127.0.0.1:${relayPort}  ->  model at ${settings.targetHost}:${settings.targetPort}`);
+      const target = modelTarget(settings);
+      console.log(`  recording: frontend -> http://127.0.0.1:${relayPort}  ->  model at ${target.remote ? shortAddress(target.label) : target.label}`
+        + (target.remote ? '  (ANOTHER COMPUTER: your chats cross the network)' : ''));
       console.log(`  logging:   ${session.dir}`);
       resolve({ ok: true });
     });
@@ -1407,10 +1599,12 @@ function stopRelay() {
 //   GET   /, /panel, /ui.js, /ui.css, /icon.png, /help   the page itself
 //   GET   /api/status, /api/settings, /api/logs, /api/about, /api/rules
 //   GET   /api/rules/export[?set=<name>]                 a rule file download
-//   POST  /api/control       the buttons (start, pause, resume, stop, restart, quit)
+//   POST  /api/control       the buttons (start, pause, resume, stop, restart, quit), and
+//                            remote-ok (OK in the outside-address warning)
 //   POST  /api/settings      save settings
 //   POST  /api/check-port    is a port free?
-//   POST  /api/test-model    does a model server answer at this address?
+//   POST  /api/test-model    does a model server answer at this address? (the saved remote one
+//                            only after its warning was accepted)
 //   POST  /api/rules         save the whole rule set
 //   POST  /api/rules/import  preview, then merge or replace
 //   GET   /api/setup/export[?folders=1]  settings and rules in one file (a download)
@@ -1518,7 +1712,13 @@ function settingsView() {
 function statusView() {
   return {
     tool: TOOL, version: VERSION, built: BUILT, state, lastError, lastErrorCode,
-    relay: relay ? { port: relayPort, target: `${settings.targetHost}:${settings.targetPort}` } : null,
+    relay: relay ? { port: relayPort, target: modelTarget(settings).label, remote: modelTarget(settings).remote } : null,
+    remote: {
+      inUse: !!(settings.allowRemoteModel && settings.remoteUrl), url: settings.allowRemoteModel ? settings.remoteUrl : '',
+      warningNeeded: remoteWarningNeeded(),
+    },
+    // WS_HIDE_THANKS=1 is for the test suites only (their scripted clicks would land on the note).
+    showThanks: savedSettings.showThanks !== false && process.env.WS_HIDE_THANKS !== '1',
     session: session ? session.name : null,
     sessionDir: session ? session.dir : null,
     summary: session ? saveSummary() : null,
@@ -1544,6 +1744,11 @@ function diagnosticReport(full, userAgent) {
   for (const f of FIELDS) {
     const waiting = pendingRestart().includes(f.key) ? `   (saved ${JSON.stringify(savedSettings[f.key])}, waits for Restart)` : '';
     settingsLines[f.key] = JSON.stringify(settings[f.key]) + waiting;
+    // A remote address can hold a token in its path: only its scheme and computer name.
+    if ((f.key === 'remoteUrl' || f.key === 'remoteWarningAcceptedFor') && settings[f.key]) {
+      settingsLines[f.key] = `${shortAddress(settings[f.key])}/... (shortened)`
+        + (pendingRestart().includes(f.key) ? '   (a saved change waits for Restart)' : '');
+    }
   }
 
   const sections = [
@@ -1551,7 +1756,8 @@ function diagnosticReport(full, userAgent) {
       State: state,
       'Last error': lastError || '(none)',
       'Receiving port': relay ? `${relayPort} (open)` : `${settings.relayPort} (closed)`,
-      'Model server': `${settings.targetHost}:${settings.targetPort}`,
+      'Model server': modelTarget(settings).remote ? `another computer (${modelTarget(settings).secure ? 'https' : 'http'})`
+        : `${settings.targetHost}:${settings.targetPort}`,
       'Panel port': uiPort,
       Session: session ? session.name : '(none)',
       'Session folder': session ? session.dir : '(none)',
@@ -1660,11 +1866,37 @@ function handleGet(url, res, req) {
 
 // --- POST /api/control: the buttons ---------------------------------------------
 
-async function pressButton(action, res) {
+async function pressButton(action, res, body = {}) {
+  if (action === 'remote-ok') {
+    // OK in the outside-address warning. Only for the address saved now, and only while the
+    // setting is on, so the window cannot be used to approve some other address.
+    // The address saved now, or the one in use (while a saved change waits for Restart).
+    const url = typeof body.url === 'string' ? body.url : '';
+    const savedOk = savedSettings.allowRemoteModel && url === savedSettings.remoteUrl;
+    const inUseOk = settings.allowRemoteModel && url === settings.remoteUrl;
+    if (!url || !(savedOk || inUseOk)) {
+      return sendJson(res, 409, { ...statusView(), error: 'That address is not the one in the settings.' });
+    }
+    remoteAcceptedThisRun = url;
+    if (body.dontShowAgain === true && savedSettings.remoteWarningAcceptedFor !== url) {
+      try {
+        writeSettingsFile({ ...savedSettings, remoteWarningAcceptedFor: url });
+      } catch (e) {
+        diag.note('CW-SETTINGS-WRITE', e.code || e.message);
+        return sendJson(res, 500, { error: diag.withCode('CW-SETTINGS-WRITE', 'could not write settings.json: ' + e.message), code: 'CW-SETTINGS-WRITE' });
+      }
+      savedSettings = { ...savedSettings, remoteWarningAcceptedFor: url };
+      settings.remoteWarningAcceptedFor = url;
+    }
+    console.log(`  warning accepted for ${shortAddress(url)}${body.dontShowAgain === true ? ' (not shown again for this address)' : ''}`);
+    if (body.start !== true || relay) return sendJson(res, 200, statusView());
+    action = 'start';
+  }
+
   if (action === 'start') {
     if (relay) return sendJson(res, 200, statusView());
     const result = await startRelay();
-    return sendJson(res, result.ok ? 200 : 409, { ...statusView(), error: result.error });
+    return sendJson(res, result.ok ? 200 : 409, { ...statusView(), error: result.error, needsRemoteOk: !!result.needsRemoteOk });
   }
 
   if (action === 'pause' || action === 'resume') {
@@ -1703,8 +1935,8 @@ async function pressButton(action, res) {
     savedSettings = checked.settings;
     settings = { ...savedSettings };
     const result = await startRelay();
-    console.log('  restarted with the saved settings');
-    return sendJson(res, result.ok ? 200 : 409, { ...statusView(), error: result.error });
+    console.log(result.ok ? '  restarted with the saved settings' : '  restart: settings applied, not recording');
+    return sendJson(res, result.ok ? 200 : 409, { ...statusView(), error: result.error, needsRemoteOk: !!result.needsRemoteOk });
   }
 
   if (action === 'quit') {
@@ -1722,8 +1954,16 @@ async function pressButton(action, res) {
 // --- POST /api/settings: save settings --------------------------------------------
 // All-or-nothing; "now" settings apply at once, the rest wait for Restart.
 
+// The outside-address acceptance can be emptied from here, never set: only OK in the warning sets it.
+function withoutNewAcceptance(incoming) {
+  const out = { ...incoming };
+  if (out.remoteWarningAcceptedFor !== undefined && out.remoteWarningAcceptedFor !== '') delete out.remoteWarningAcceptedFor;
+  return out;
+}
+
 function saveSettingsFromPanel(body, res) {
-  const checked = checkSettings({ ...savedSettings, ...(body.settings || {}) });
+  const incoming = body.settings && typeof body.settings === 'object' && !Array.isArray(body.settings) ? body.settings : {};
+  const checked = checkSettings({ ...savedSettings, ...withoutNewAcceptance(incoming) });
   if (checked.problems.length) return sendJson(res, 400, { error: 'not saved', problems: checked.problems });
   try {
     writeSettingsFile(checked.settings);
@@ -1757,6 +1997,7 @@ async function checkPort(body, res) {
 // --- POST /api/test-model: does a model server answer here? (loopback only) ------
 
 async function testModel(body, res) {
+  if (body.url !== undefined) return testRemoteModel(body, res);
   const host = String(body.host || '');
   const port = body.port;
   if (!LOOPBACK_NAMES.includes(host)) return sendJson(res, 400, { error: 'the model server must be on this computer' });
@@ -1765,6 +2006,36 @@ async function testModel(body, res) {
     return sendJson(res, 200, { reachable: false, error: "that is ContextWeir's own port" });
   }
   sendJson(res, 200, await modelServerInfo(host, port));
+}
+
+// The Test button for a model server on another computer: only the saved address, only with the
+// setting saved on and its warning accepted. One GET of <address>/v1/models, no API key (so a cloud
+// service usually answers 401, which still shows it is there), certificate checked, 5 s, 256 KB.
+function testRemoteModel(body, res) {
+  const url = typeof body.url === 'string' ? body.url : '';
+  if (!savedSettings.allowRemoteModel || url !== savedSettings.remoteUrl || !url) {
+    return sendJson(res, 400, { error: 'Save the address with "Allow a model server on another computer" ticked first.' });
+  }
+  if (!(remoteAcceptedThisRun === url || savedSettings.remoteWarningAcceptedFor === url)) {
+    return sendJson(res, 409, { error: 'Accept the warning for this address first.', needsRemoteOk: true });
+  }
+  const t = modelTarget({ ...savedSettings });
+  const lib = t.secure ? https : http;
+  let answered = false;
+  const answer = obj => { if (answered) return; answered = true; clearTimeout(overall); sendJson(res, 200, obj); };
+  const req = lib.get({ host: t.hostname, port: t.port, path: t.basePath + '/v1/models', timeout: 5000,
+    headers: { host: t.hostHeader, 'accept-encoding': 'identity' }, rejectUnauthorized: true }, up => {
+    const reached = { reachable: true, remote: true, status: up.statusCode };
+    let size = 0;
+    up.on('data', d => { size += d.length; if (size > 256 * 1024) { answer(reached); up.destroy(); } });
+    up.on('end', () => answer(reached));
+    up.on('close', () => answer(reached));
+    up.on('error', () => answer(reached));
+  });
+  // One limit for the whole test (the socket's own timeout only measures quiet gaps).
+  const overall = setTimeout(() => { req.destroy(new Error('timeout')); answer({ reachable: false, remote: true, error: 'no answer within 8 s' }); }, 8000);
+  req.on('timeout', () => req.destroy(new Error('timeout')));
+  req.on('error', e => answer({ reachable: false, remote: true, error: e.message === 'timeout' ? 'no answer' : (e.code || 'error') }));
 }
 
 // --- POST /api/rules: save the whole rule set as edited in the window ------------
@@ -1854,6 +2125,7 @@ function setupFile(includeFolders) {
   const exported = {};
   for (const f of FIELDS) {
     if (!includeFolders && FOLDER_KEYS.includes(f.key)) continue;
+    if (f.key === 'remoteWarningAcceptedFor') continue;   // a warning accepted here is not accepted on another PC
     exported[f.key] = savedSettings[f.key];
   }
   return {
@@ -1886,6 +2158,7 @@ function importSetup(body, res) {
   for (const f of FIELDS) {
     if (incoming[f.key] === undefined) continue;
     if (FOLDER_KEYS.includes(f.key) && !body.applyFolders) continue;
+    if (f.key === 'remoteWarningAcceptedFor') continue;   // only OK in the warning on this PC sets it
     wanted[f.key] = incoming[f.key];
   }
   const checked = checkSettings({ ...savedSettings, ...wanted });
@@ -1942,7 +2215,7 @@ function importSetup(body, res) {
 // --- The window's server: every request starts here --------------------------------
 
 const POST_ROUTES = {
-  '/api/control': (body, res) => pressButton(body.action, res),
+  '/api/control': (body, res) => pressButton(body.action, res, body),
   '/api/settings': saveSettingsFromPanel,
   '/api/check-port': checkPort,
   '/api/test-model': testModel,

@@ -1,4 +1,4 @@
-ContextWeir 0.5.6.0 and PromptAssay 0.4.0.0, built 25 Nov 2026. Part of the Wellspring tools.
+ContextWeir 0.6.0.0 and PromptAssay 0.4.1.0, built 25 Nov 2026. Part of the Wellspring tools.
 Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
 Licence: CC BY 4.0 (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
 
@@ -19,8 +19,12 @@ In short:
   window can change its settings or rules, press its buttons (Start, Stop, Quit...), check whether
   a port is free or test the model address, so no web page or other program can use it to probe
   your computer.
-- ContextWeir forwards only to a model server on this computer; the panel cannot change that.
-  Cloud models are not supported. It never saves request headers (where API keys travel).
+- ContextWeir forwards only to a model server on this computer unless you tick "Allow a model
+  server on another computer" (since 0.6). Then a warning explains the risk and nothing is sent or
+  recorded until you press OK; "Don't show this again" covers one address only and never travels
+  in a setup file; no web page or other program can accept it for you. https certificates are
+  always checked. Your frontend's API key is passed on, never saved. ContextWeir sends nothing
+  there that your frontend did not send (no version check). It never saves request headers.
 - No outside packages, no downloads, no updates, no running of other programs. Rule files are
   data, never code; anything unexpected in one is refused with a reason. Rules run with a time
   limit, so even a badly written pattern cannot freeze the recorder.
@@ -28,7 +32,8 @@ In short:
   copy of each as .bak; a change with any problem is refused whole). It deletes only its own old
   session folders. If you set the SillyTavern folder, it reads that folder's package.json for the
   version number and nothing else. PromptAssay only reads (it writes nothing but its running.json
-  while it runs, and a settings.json with the defaults if there is none).
+  while it runs, a settings.json with the defaults if there is none, and showThanks in that file
+  when you tick "Don't show this again" in its thank-you note, from its own window only).
 - The diagnostic report (both tools, since 24 Nov) holds versions, settings, counts, recent error
   codes and the tools' own console lines: never prompts, replies or lorebook text. Folder paths
   are shortened (<home>) unless you tick full paths. You see all of it before saving, and it is

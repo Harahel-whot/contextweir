@@ -1,4 +1,4 @@
-// PromptAssay 0.4.0.0, built 25 Nov 2026. Part of the Wellspring tools.
+// PromptAssay 0.4.1.0, built 25 Nov 2026. Part of the Wellspring tools.
 // Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
 // Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
 
@@ -804,4 +804,30 @@ document.addEventListener('keydown', e => {
   } catch (_) { /* not allowed here: keep the browser's size */ }
 })();
 
-loadSessions().catch(e => { $('#detail').textContent = 'Could not load: ' + e.message; });
+// The thank-you note (user, 25 Nov): when the window opens, until "Don't show this again". It
+// never blocks the page underneath. Ticking the box is the one thing PromptAssay ever writes:
+// showThanks false in its own settings.json (POST /api/thanks).
+async function showThanks() {
+  let state;
+  try { state = await api('/api/thanks'); } catch (_) { return; }
+  if (!state.show) return;
+  const about = await api('/api/about');
+  $('#thanksTitle').textContent = `Thank you for using ${about.name}!`;
+  const links = $('#thanksLinks');
+  links.textContent = '';
+  const link = (label, href) => (href
+    ? el('a', { href, target: '_blank', rel: 'noopener noreferrer', text: label })
+    : el('span', { class: 'muted', text: `${label} (coming soon)` }));
+  links.append(link('GitHub', about.links.github), ' · ', link('Discord', about.links.discord));
+  $('#thanksVersion').textContent = `${about.name} ${about.version}, built ${about.built} · by ${about.directedBy}, written with Claude (Anthropic)`;
+  $('#thanksHide').checked = false;
+  $('#thanksDialog').showModal();
+}
+$('#thanksClose').addEventListener('click', async () => {
+  $('#thanksDialog').close();
+  if ($('#thanksHide').checked) {
+    await fetch('/api/thanks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ show: false }) });
+  }
+});
+
+loadSessions().catch(e => { $('#detail').textContent = 'Could not load: ' + e.message; }).finally(showThanks);

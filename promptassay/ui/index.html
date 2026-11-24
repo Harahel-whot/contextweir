@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PromptAssay 0.4.0.0, built 25 Nov 2026. Part of the Wellspring tools.
+<!-- PromptAssay 0.4.1.0, built 25 Nov 2026. Part of the Wellspring tools.
      Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
      Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir -->
 <html lang="en">
@@ -71,6 +71,22 @@
   <dialog id="aboutDialog">
     <div id="aboutBody"></div>
     <div class="buttons"><button type="button" id="aboutClose" class="primary">Close</button></div>
+  </dialog>
+
+  <!-- The thank-you note (user, 25 Nov): shown when the window opens, until "Don't show this again". -->
+  <dialog id="thanksDialog" class="thanks">
+    <h3 id="thanksTitle">Thank you for using PromptAssay!</h3>
+    <p>It's a small, free tool made by one hobbyist, and I'd love to hear how it works for you:
+      what helped, what broke, what's missing.</p>
+    <p class="links"><strong>Feedback:</strong> <span id="thanksLinks"></span></p>
+    <p class="muted small" id="thanksVersion"></p>
+    <p class="muted small disclaimer">Provided as is, with no warranty (MIT licence). Not made by or affiliated with
+      SillyTavern, KoboldCpp or Anthropic. Your logs stay on this computer unless you share them, and they hold your
+      full chats, so check them before you do.</p>
+    <div class="buttons spread">
+      <label class="inline"><input type="checkbox" id="thanksHide"> Don't show this again</label>
+      <button type="button" id="thanksClose" class="primary">Close</button>
+    </div>
   </dialog>
 
   <script src="/app.js"></script>

@@ -13,3 +13,6 @@ contextweir/logs/
 dev/tests/*_work/
 dev/tests/*_out/
 node_modules/
+dev/tests/cwlogs/
+dev/tests/cw_about/
+dev/tests/rules_ui/

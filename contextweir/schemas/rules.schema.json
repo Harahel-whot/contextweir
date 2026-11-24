@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "contextweir-rules.schema.json",
-  "$comment": "Made by ContextWeir 0.5.6.0 (node contextweir.js --schema rules). Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic). Licence: MIT. A schema checks shapes and ranges only: run node contextweir.js --check as well.",
+  "$comment": "Made by ContextWeir 0.6.0.0 (node contextweir.js --schema rules). Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic). Licence: MIT. A schema checks shapes and ranges only: run node contextweir.js --check as well.",
   "title": "ContextWeir rule file (rules.json, or an exported rule set)",
   "type": "object",
   "required": [

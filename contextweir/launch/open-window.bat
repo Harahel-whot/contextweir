@@ -1,5 +1,5 @@
 @echo off
-rem ContextWeir 0.5.6.0, built 25 Nov 2026. Part of the Wellspring tools.
+rem ContextWeir 0.6.0.0, built 25 Nov 2026. Part of the Wellspring tools.
 rem Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
 rem Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
 rem Opens %1/panel (the control panel at a 127.0.0.1 address) in your default browser.

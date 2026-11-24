@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- PromptAssay 0.4.0.0, built 25 Nov 2026. Part of the Wellspring tools.
+<!-- PromptAssay 0.4.1.0, built 25 Nov 2026. Part of the Wellspring tools.
      Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
      Licence: CC BY 4.0 (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir -->
 <html lang="en">
@@ -25,8 +25,8 @@
 <body>
 <main>
 <h1>PromptAssay help</h1>
-<p class="muted">The reader. Version 0.4.0.0 (prototype), built 25 Nov 2026. This file is also in the PromptAssay folder as <code>help.html</code>.</p>
-<nav><a href="#what">What it does</a><a href="#start">Start and stop</a><a href="#demo">Demo</a><a href="#reading">Reading a request</a><a href="#pieces">Exact text</a><a href="#keys">Keys</a><a href="#versions">Versions</a><a href="#warnings">Warnings</a><a href="#settings">Settings</a><a href="#privacy">Privacy</a><a href="#trouble">Problems</a><a href="#codes">Error codes</a><a href="#report">Diagnostic report</a></nav>
+<p class="muted">The reader. Version 0.4.1.0 (prototype), built 25 Nov 2026. This file is also in the PromptAssay folder as <code>help.html</code>.</p>
+<nav><a href="#what">What it does</a><a href="#start">Start and stop</a><a href="#demo">Demo</a><a href="#reading">Reading a request</a><a href="#pieces">Exact text</a><a href="#keys">Keys</a><a href="#versions">Versions</a><a href="#warnings">Warnings</a><a href="#thanks">Thank-you note</a><a href="#settings">Settings</a><a href="#privacy">Privacy</a><a href="#trouble">Problems</a><a href="#codes">Error codes</a><a href="#report">Diagnostic report</a></nav>
 
 <h2 id="what">What it does</h2>
 <p>PromptAssay opens the logs that <b>ContextWeir</b> records and takes each request apart, so you can see exactly what SillyTavern sent to your model: the system prompt, your card, each lorebook entry, the summary, the chat history and anything injected, each with its size. It works with chat completion and, since 0.4, <a href="#text">text completion</a>. It also reads the older Wellspring test logger's folders.</p>
@@ -113,6 +113,9 @@
 <h2 id="warnings">Warnings</h2>
 <p>Warnings come from ContextWeir's flag rules (you set them up in ContextWeir's window). PromptAssay shows where they fired: <span class="sw" style="background:#6b8fb3"></span>note, <span class="sw" style="background:#d9a441"></span>warning, <span class="sw" style="background:#e05d5d"></span>serious. The matching text is highlighted inside the reply or prompt.</p>
 
+<h2 id="thanks">The thank-you note</h2>
+<p>When the window opens, a short note thanks you for using PromptAssay and lists where to send feedback (GitHub, and a Discord channel to come). It never stops anything. Tick <b>Don't show this again</b> to hide it for good: that sets <code>showThanks</code> to <code>false</code> in settings.json, the only thing PromptAssay ever writes.</p>
+
 <h2 id="settings">Settings (settings.json)</h2>
 <p>Edit with any text editor while PromptAssay is closed.</p>
 <table>
@@ -122,13 +125,14 @@
   <tr><td><code>charactersDir</code></td><td>SillyTavern's character folder, for labelling card fields (PNG cards, and cards saved as JSON)</td></tr>
   <tr><td><code>instructDir</code></td><td>optional: SillyTavern's instruct preset folder, for taking text-completion prompts apart. Left empty, the <code>instruct</code> folder beside <code>worldsDir</code> is used if there is one; otherwise the built-in templates</td></tr>
   <tr><td><code>showDemo</code></td><td><code>true</code> (the default) lists the made-up demo session at the bottom; <code>false</code> hides it</td></tr>
+  <tr><td><code>showThanks</code></td><td><code>true</code> (the default) shows the thank-you note when the window opens; the note's "Don't show this again" sets it to <code>false</code></td></tr>
 </table>
 <p>Folders can be written relative to the PromptAssay folder or in full. Without <code>worldsDir</code> and <code>charactersDir</code>, sections are labelled by position only.</p>
 
 <h2 id="privacy">Privacy and safety</h2>
 <ul>
-  <li>PromptAssay runs only on this computer (127.0.0.1) and only reads. It needs no internet and sends nothing anywhere.</li>
-  <li>Web pages in your browser cannot read your logs through it.</li>
+  <li>PromptAssay runs only on this computer (127.0.0.1) and only reads. The one thing it writes is <code>showThanks</code> in its own settings.json, when you tick "Don't show this again". It needs no internet and sends nothing anywhere.</li>
+  <li>Web pages in your browser cannot read your logs through it, or make it write anything; only its own window can hide the note.</li>
   <li>Logs hold full prompts in plain text. Keep them private.</li>
 </ul>
 
@@ -144,6 +148,7 @@
 <table class="codes">
 <tr><th>Code</th><th>What it means</th><th>What to do</th></tr>
 <tr id="PA-SETTINGS-BAD-JSON"><td><code>PA-SETTINGS-BAD-JSON</code></td><td><b>settings.json is not valid JSON.</b> PromptAssay could not read its settings file (often a missing comma or quote after editing it by hand), so it stopped.</td><td>Fix the file, or delete it and start PromptAssay again to get the defaults.</td></tr>
+<tr id="PA-SETTINGS-WRITE"><td><code>PA-SETTINGS-WRITE</code></td><td><b>settings.json could not be written.</b> You ticked "Don't show this again" in the thank-you note, but PromptAssay could not save that in its settings file.</td><td>Check the PromptAssay folder is not read-only. You can also set "showThanks": false in settings.json by hand.</td></tr>
 <tr id="PA-SETTINGS-LOGDIRS"><td><code>PA-SETTINGS-LOGDIRS</code></td><td><b>logDirs is not a list of folders.</b> The "logDirs" setting must be a list of folder names in square brackets, e.g. ["../contextweir/logs"].</td><td>Fix "logDirs" in settings.json, then start PromptAssay again.</td></tr>
 <tr id="PA-WINDOW-FAILED"><td><code>PA-WINDOW-FAILED</code></td><td><b>The window could not open.</b> PromptAssay could not open a port for its window, so it stopped.</td><td>Start it again. If it keeps happening, restart the computer; a security program may be blocking local ports.</td></tr>
 <tr id="PA-LOG-FOLDER"><td><code>PA-LOG-FOLDER</code></td><td><b>A log folder could not be read.</b> One of the folders in "logDirs" does not exist or cannot be read, so its sessions are not listed.</td><td>Check the folder in settings.json. By default it is ContextWeir's logs folder next to PromptAssay's.</td></tr>

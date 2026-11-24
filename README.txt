@@ -1,8 +1,8 @@
-ContextWeir 0.5.6.0 and PromptAssay 0.4.0.0, built 25 Nov 2026. Part of the Wellspring tools.
+ContextWeir 0.6.0.0 and PromptAssay 0.4.1.0, built 25 Nov 2026. Part of the Wellspring tools.
 Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
 Licence: CC BY 4.0 (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
 
-CONTEXTWEIR AND PROMPTASSAY  (prototypes: ContextWeir 0.5.6.0 and PromptAssay 0.4.0.0, built 25 Nov 2026)
+CONTEXTWEIR AND PROMPTASSAY  (prototypes: ContextWeir 0.6.0.0 and PromptAssay 0.4.1.0, built 25 Nov 2026)
 =====================================================================================
 Two small tools for seeing exactly what your chat frontend sends to your model.
 
@@ -10,8 +10,9 @@ Two small tools for seeing exactly what your chat frontend sends to your model.
                 frontend) and your model server on this computer, passes
                 everything through unchanged, and saves each request and reply
                 exactly as sent. Checks every turn against flag rules
-                (rules.json). Run from its control panel. Local models only:
-                cloud models (OpenRouter, Claude, OpenAI) are not supported.
+                (rules.json). Run from its control panel. Local models by
+                default; since 0.6 a model server on another computer or a
+                cloud service can be allowed, after a warning about the risk.
   PromptAssay   the reader. Opens those logs in a window and takes each request
                 apart: every message as a labelled section with its size, which
                 lorebook entries and card fields are in it, what entered or left
@@ -156,7 +157,13 @@ SECURITY (see the transparency package's security pass)
   window's address (not another site, not another local app such as
   SillyTavern's page), must be JSON, and at most 1 MB. Every change is checked
   exactly like the files at start-up; a change with any problem is not saved.
-  The panel cannot point ContextWeir at another computer or a cloud service.
+  Forwarding to another computer (since 0.6) is off by default; when it is on,
+  nothing is sent or recorded until the person accepts a warning in the panel
+  (per address; never carried by a setup file), https certificates are always
+  checked, the frontend's API key is passed on but never saved, and nothing is
+  sent there that the frontend did not send (no version probe).
+- PromptAssay's one write (since 0.4.1): the thank-you note's "Don't show this
+  again" sets showThanks in its own settings.json, from its own window only.
 - ContextWeir reads one file outside its folder, and only if you set the
   SillyTavern folder: that folder's package.json, for the version number.
 - No eval, no child processes inside the tools, no packages, no auto-update.

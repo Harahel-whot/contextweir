@@ -1,4 +1,4 @@
-/* PromptAssay 0.4.0.0, built 25 Nov 2026. Part of the Wellspring tools.
+/* PromptAssay 0.4.1.0, built 25 Nov 2026. Part of the Wellspring tools.
    Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
    Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir */
 /* PromptAssay window. Plain CSS, no external fonts or files. */
@@ -159,3 +159,10 @@ dialog .buttons a.button { background: #2d4b63; border: 1px solid #4a7aa0; color
 .textsplit { font-size: 13px; color: var(--muted); margin: -4px 0 12px; }
 .textsplit b { color: var(--text); font-weight: 600; }
 .marker { opacity: 0.45; font-style: italic; }
+
+/* The thank-you note (0.4.1) */
+dialog.thanks { width: min(560px, 94vw); }
+dialog.thanks p { margin: 8px 0; }
+dialog.thanks .links a { color: var(--accent, #7fb3d5); }
+dialog.thanks .disclaimer { border-top: 1px solid var(--line); padding-top: 8px; }
+dialog .buttons.spread { justify-content: space-between; align-items: center; flex-wrap: wrap; }

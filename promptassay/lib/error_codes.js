@@ -1,4 +1,4 @@
-// PromptAssay 0.4.0.0, built 25 Nov 2026. Part of the Wellspring tools.
+// PromptAssay 0.4.1.0, built 25 Nov 2026. Part of the Wellspring tools.
 // Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
 // Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
 
@@ -18,6 +18,11 @@ const CODES = {
     title: 'settings.json is not valid JSON',
     means: 'PromptAssay could not read its settings file (often a missing comma or quote after editing it by hand), so it stopped.',
     fix: 'Fix the file, or delete it and start PromptAssay again to get the defaults.',
+  },
+  'PA-SETTINGS-WRITE': {
+    title: 'settings.json could not be written',
+    means: 'You ticked "Don\'t show this again" in the thank-you note, but PromptAssay could not save that in its settings file.',
+    fix: 'Check the PromptAssay folder is not read-only. You can also set "showThanks": false in settings.json by hand.',
   },
   'PA-SETTINGS-LOGDIRS': {
     title: 'logDirs is not a list of folders',

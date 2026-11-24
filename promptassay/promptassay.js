@@ -1,4 +1,4 @@
-// PromptAssay 0.4.0.0, built 25 Nov 2026. Part of the Wellspring tools.
+// PromptAssay 0.4.1.0, built 25 Nov 2026. Part of the Wellspring tools.
 // Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
 // Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
 
@@ -24,8 +24,10 @@
 // NOW is shown beside that, clearly marked as today's, not the log's.
 //
 // SECURITY: listens on 127.0.0.1 only; checks Host and Origin; read-only (no
-// request can write, delete or name a file path); serves its page with a
-// strict Content-Security-Policy; Node built-ins only.
+// request can delete or name a file path; the one write, since 0.4.1, is the
+// thank-you note's "Don't show this again", which sets showThanks in its own
+// settings.json and nothing else, from its own window only); serves its page
+// with a strict Content-Security-Policy; Node built-ins only.
 //
 // HOW THIS FILE IS LAID OUT (numbered sections, top to bottom):
 //   1. Settings              4. Knowing your content (lorebooks and cards)
@@ -44,7 +46,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const TOOL = 'PromptAssay';
-const VERSION = '0.4.0.0';
+const VERSION = '0.4.1.0';
 const BUILT = '25 Nov 2026';   // the date this version's code last changed; shown beside the version
 
 // Error codes and the diagnostic report (lib/diagnostics.js, lib/error_codes.js). The console is
@@ -68,12 +70,18 @@ const ABOUT = {
   ],
   testedWith: ['SillyTavern 1.19.0 (chat completion)'],
   needs: 'Node.js 18 or newer; Edge, Chrome or Chromium for the app window (any browser works as a tab)',
-  writtenBy: [{ versions: '0.1 to 0.4.0.0', by: 'Claude Opus 5.5 (Anthropic)' }],
+  writtenBy: [{ versions: '0.1 to 0.4.1.0', by: 'Claude Opus 5.5 (Anthropic)' }],
   directedBy: 'Harahel-Whot',
   credit: 'Design and direction by Harahel-Whot; code, docs and testing written with Claude (Anthropic).',
   licence: 'MIT for the code, CC BY 4.0 for the help, docs and icons: free to use, change and share, '
     + 'as long as the credit is kept. See LICENSE.txt.',
-  privacy: 'Read-only. Runs only on this computer; nothing is sent anywhere.',
+  privacy: 'Reads only (the one thing it writes is its own settings.json, when you tick "Don\'t show this again" '
+    + 'in the thank-you note). Runs only on this computer; nothing is sent anywhere.',
+  // Where to send feedback (thank-you popup and About). An empty address shows as "coming soon".
+  links: {
+    github: 'https://github.com/Harahel-Whot/contextweir',
+    discord: '',
+  },
 };
 
 const HERE = __dirname;
@@ -97,6 +105,8 @@ const DEFAULTS = {
   // Optional: SillyTavern's instruct preset folder, to take text-completion prompts apart. Left
   // empty, the "instruct" folder beside worldsDir is used if there is one.
   instructDir: '',
+  // The thank-you note when the window opens (user, 25 Nov). "Don't show this again" sets it false.
+  showThanks: true,
 };
 
 // The made-up demo that ships with the tools (dev/make_demo.js): its own logs, card and lorebook.
@@ -135,6 +145,7 @@ function loadSettings() {
   s.worldsDir = fullPath(s.worldsDir);
   s.charactersDir = fullPath(s.charactersDir);
   s.showDemo = s.showDemo !== false;
+  s.showThanks = s.showThanks !== false;
   s.instructDir = fullPath(s.instructDir);
   if (!s.instructDir && s.worldsDir) {
     const beside = path.join(path.dirname(s.worldsDir), 'instruct');
@@ -1028,6 +1039,7 @@ function handleRequest(req, res) {
   if (site !== undefined && site !== 'same-origin' && site !== 'none') return sendProblem(res, 403, 'PA-REFUSED-ORIGIN', 'sent by another site');
   if (!hostOk(req)) return sendProblem(res, 403, 'PA-REFUSED-HOST', 'unexpected Host header');
   if (!originOk(req)) return sendProblem(res, 403, 'PA-REFUSED-ORIGIN', 'request from another site');
+  if (req.method === 'POST' && req.url === '/api/thanks') return hideThanks(req, res);
   if (req.method !== 'GET') return sendProblem(res, 405, 'PA-READ-ONLY', 'read-only', req.method);
 
   try {
@@ -1046,6 +1058,8 @@ function handleRequest(req, res) {
       return res.end(fs.readFileSync(path.join(HERE, 'help.html')));
     }
     if (url.pathname === '/api/about') return send(res, 200, ABOUT);
+    // WS_HIDE_THANKS=1 is for the test suites only (their scripted clicks would land on the note).
+    if (url.pathname === '/api/thanks') return send(res, 200, { show: settings.showThanks && process.env.WS_HIDE_THANKS !== '1' });
     if (url.pathname === '/api/errors') return send(res, 200, { codes: CODES, recent: diag.problems() });
     if (url.pathname === '/api/diagnostic') {
       // The report is only text the page shows before the person saves it themselves.
@@ -1088,6 +1102,51 @@ function handleRequest(req, res) {
     return sendProblem(res, 500, 'PA-RECORD-UNREADABLE', `could not read that (${e.name})`, `${req.url.slice(0, 40)}: ${e.name}`);
   }
   send(res, 404, { error: 'not found' });
+}
+
+// POST /api/thanks  { show: false }: the thank-you note's "Don't show this again" (user, 25 Nov).
+// The only request that writes anything. It must come from this window's own page (an Origin on
+// this port, not just "no Origin"), as JSON, at most 1 KB; it sets showThanks to false in
+// settings.json and keeps every other line of the file as it was (temp file, then rename).
+function hideThanks(req, res) {
+  const origin = req.headers.origin;
+  if (!origin || !originOk(req)) return sendProblem(res, 403, 'PA-REFUSED-ORIGIN', 'only from the PromptAssay window');
+  if (!/^application\/json\b/i.test(String(req.headers['content-type'] || ''))) return send(res, 415, { error: 'JSON only' });
+  const chunks = [];
+  let size = 0;
+  let refused = false;
+  req.on('data', d => {
+    size += d.length;
+    if (size > 1024 && !refused) {
+      refused = true;
+      res.setHeader('Connection', 'close');
+      res.on('finish', () => req.destroy());   // after the answer has gone, so the sender sees it
+      send(res, 413, { error: 'too large' });
+      return;
+    }
+    if (refused) return;
+    chunks.push(d);
+  });
+  req.on('end', () => {
+    if (refused) return;
+    let body;
+    try { body = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch (_) { return send(res, 400, { error: 'not valid JSON' }); }
+    if (!body || body.show !== false) return send(res, 400, { error: 'expected { "show": false }' });
+    try {
+      let raw = {};
+      if (fs.existsSync(SETTINGS_FILE)) raw = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return send(res, 409, { error: 'settings.json is not an object' });
+      raw.showThanks = false;
+      const tmp = SETTINGS_FILE + '.tmp';
+      fs.writeFileSync(tmp, JSON.stringify(raw, null, 2) + '\n');
+      fs.renameSync(tmp, SETTINGS_FILE);
+      settings.showThanks = false;
+      console.log('  the thank-you note will not show again (showThanks false in settings.json)');
+      send(res, 200, { show: false });
+    } catch (e) {
+      sendProblem(res, 500, 'PA-SETTINGS-WRITE', `could not write settings.json (${e.code || e.name})`, e.code || e.name);
+    }
+  });
 }
 
 // The window port: any free port the operating system hands out, so it can never clash with

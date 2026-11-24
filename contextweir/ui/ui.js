@@ -1,4 +1,4 @@
-// ContextWeir 0.5.6.0, built 25 Nov 2026. Part of the Wellspring tools.
+// ContextWeir 0.6.0.0, built 25 Nov 2026. Part of the Wellspring tools.
 // Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
 // Licence: MIT (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
 
@@ -10,6 +10,8 @@
 //   2. Buttons and status      Start / Pause / Stop / Restart / Quit, the
 //                              start screen, the yellow or red bar, the
 //                              session numbers (refreshed every 3 seconds)
+//  2b. Two popups              the thank-you note, and the warning before
+//                              chats go to a model server on another computer
 //   3. Settings tabs           Connection, Logs, Advanced: drawn from the
 //                              field list ContextWeir sends, so the panel and
 //                              the checks on the other side always agree
@@ -161,6 +163,7 @@ function versionLine(v) {
 // What the model server said about itself, in one line.
 function modelServerLine(ms) {
   if (!ms) return 'asking…';
+  if (ms.remote) return `${ms.address || 'another computer'} (remote server: version not asked)`;
   if (!ms.reachable) return `did not answer (${ms.error || 'no answer'})`;
   const bits = [];
   if (ms.server) bits.push(`${ms.server.name} ${ms.server.version}`);
@@ -177,6 +180,13 @@ async function control(action) {
     + 'and this window and the console close. Start it again with its Start file.')) return;
 
   const answer = await post('/api/control', { action });
+
+  // Start or Restart with a model server on another computer: the warning comes first.
+  if (answer.needsRemoteOk) {
+    status = answer;
+    await refreshStatus();
+    return askRemoteOk({ start: true });
+  }
 
   if (action === 'quit') {
     quitting = true;
@@ -210,6 +220,11 @@ function drawBanner() {
   // An error with a code gets a button that opens the help page at that code.
   const explain = status.lastErrorCode ? { label: 'What does this mean?', run: () => openHelp(status.lastErrorCode) } : null;
   if (status.state === 'portTaken') return banner(status.lastError, 'bad', explain);
+  if (status.remote && status.remote.warningNeeded && !status.relay) {
+    return banner(`Not recording: set to send your chats to ${status.remote.url}. Read the warning to start, `
+      + 'or untick "Allow a model server on another computer" on the Connection tab.', 'warn',
+    { label: 'Read the warning', run: () => askRemoteOk({ start: true }) });
+  }
   if (status.lastError) return banner(status.lastError, 'bad', explain);
   if (waiting.length && status.state !== 'ready') {
     const fieldLabel = key => ((settings && settings.fields.find(f => f.key === key)) || { label: key }).label;
@@ -262,8 +277,11 @@ async function refreshStatus() {
   const inUse = settings && settings.inUse;
   $('#startBox').hidden = listening;
   if (!listening && inUse) {
+    const remoteInUse = inUse.allowRemoteModel && inUse.remoteUrl;
+    const where = remoteInUse ? `${inUse.remoteUrl}, a model server on ANOTHER computer (a warning comes first)`
+      : `${inUse.targetHost}:${inUse.targetPort}`;
     $('#startText').textContent = `Start opens the receiving port ${inUse.relayPort} (your frontend connects to `
-      + `http://127.0.0.1:${inUse.relayPort}/v1) and forwards to the model server at ${inUse.targetHost}:${inUse.targetPort}. `
+      + `http://127.0.0.1:${inUse.relayPort}/v1) and forwards to the model server at ${where}. `
       + `Logs go to ${settings.saved.logsDir}.`;
     $('#skipScreen').checked = !settings.saved.showStartScreen;
   }
@@ -271,7 +289,7 @@ async function refreshStatus() {
   if (listening) {
     fillPairs($('#status'), {
       'Frontend connects to': `http://127.0.0.1:${st.relay.port}/v1`,
-      'Forwards to': st.relay.target,
+      'Forwards to': st.relay.target + (st.relay.remote ? '  (another computer: your chats cross the network)' : ''),
       Logging: st.state === 'paused' ? 'paused (nothing saved)' : st.sessionDir,
       Frontend: versionLine(st.summary && st.summary.frontend),
       'Model server': modelServerLine(st.summary && st.summary.modelServer),
@@ -319,6 +337,75 @@ async function refreshStatus() {
 
 
 // ----------------------------------------------------------------------------
+// 2b. Two popups: the thank-you note and the outside-address warning (user, 25 Nov)
+// ----------------------------------------------------------------------------
+// The thank-you note shows when the panel opens, until "Don't show this again" (saved as
+// showThanks). It never blocks anything: ContextWeir keeps relaying behind it.
+// The warning shows before chats go to a model server on another computer: when Start or Restart
+// is refused for it, when ContextWeir opened straight into recording, and when the box is ticked.
+// OK tells ContextWeir (remote-ok, for the saved address only); Cancel leaves it not recording.
+
+let remoteAgreedInForm = null;   // { url, dontShowAgain } once the warning was accepted while ticking the box
+
+// Show a dialog and wait until it closes. Resolves to the value the closing button gave.
+function waitForDialog(dialog) {
+  return new Promise(resolve => {
+    dialog.returnValue = '';   // Escape closes without a value: that counts as Cancel
+    dialog.addEventListener('close', () => resolve(dialog.returnValue), { once: true });
+    dialog.showModal();
+  });
+}
+
+async function showThanks() {
+  const about = await getJson('/api/about');
+  $('#thanksTitle').textContent = `Thank you for using ${about.name}!`;
+  const links = $('#thanksLinks');
+  links.textContent = '';
+  const link = (label, href) => (href
+    ? el('a', { href, target: '_blank', rel: 'noopener noreferrer', text: label })
+    : el('span', { class: 'muted', text: `${label} (coming soon)` }));
+  links.append(link('GitHub', about.links.github), ' · ', link('Discord', about.links.discord));
+  $('#thanksVersion').textContent = `${about.name} ${about.version}, built ${about.built} · by ${about.directedBy}, written with Claude (Anthropic)`;
+  $('#thanksHide').checked = false;
+  await waitForDialog($('#thanksDialog'));
+  if ($('#thanksHide').checked) {
+    const answer = await post('/api/settings', { settings: { showThanks: false } });
+    if (answer.ok) settings = answer;
+  }
+}
+$('#thanksClose').addEventListener('click', () => $('#thanksDialog').close('close'));
+
+// The warning itself. Resolves to { dontShowAgain } for OK, or null for Cancel (or Escape).
+async function showRemoteWarning(url) {
+  $('#remoteUrlShown').textContent = url || '(the address you type below)';
+  $('#remoteHttpLine').hidden = !/^http:/i.test(url || '');
+  $('#remoteHide').checked = false;
+  const answer = await waitForDialog($('#remoteDialog'));
+  return answer === 'ok' ? { dontShowAgain: $('#remoteHide').checked } : null;
+}
+$('#remoteOk').addEventListener('click', () => $('#remoteDialog').close('ok'));
+$('#remoteCancel').addEventListener('click', () => $('#remoteDialog').close('cancel'));
+
+// Ask about the address ContextWeir has in use, and tell it the answer. start: also start recording.
+async function askRemoteOk({ start }) {
+  const url = status && status.remote && status.remote.url;
+  if (!url) return false;
+  if ($('#remoteDialog').open) return false;
+  const choice = await showRemoteWarning(url);
+  if (!choice) {
+    banner('Not recording: the warning was cancelled. Untick "Allow a model server on another computer" on the '
+      + 'Connection tab and press Restart to use this computer only.', 'warn');
+    return false;
+  }
+  const answer = await post('/api/control', { action: 'remote-ok', url, dontShowAgain: choice.dontShowAgain, start });
+  if (answer.error) banner(answer.error, 'bad');
+  await loadSettings();
+  await refreshStatus();
+  return !answer.error;
+}
+
+
+// ----------------------------------------------------------------------------
 // 3. The settings tabs
 // ----------------------------------------------------------------------------
 // Drawn from the field list ContextWeir sends (FIELDS in contextweir.js), so
@@ -345,6 +432,12 @@ function fieldInput(f, value) {
       type: 'number', 'data-key': f.key, value: String(value), step: 1,
       min: f.type === 'port' ? 1024 : f.min,
       max: f.type === 'port' ? 65535 : f.max,
+    });
+  }
+  if (f.type === 'url') {
+    return el('input', {
+      type: 'text', 'data-key': f.key, value: value || '', maxlength: 300, class: 'wide',
+      placeholder: 'e.g. http://192.168.1.20:5001', spellcheck: 'false', autocomplete: 'off',
     });
   }
   return el('input', {
@@ -379,6 +472,19 @@ function drawForms() {
       if (f.key === 'targetPort') {
         extraButtons.push(el('button', { type: 'button', class: 'small', text: 'Test', onclick: () => testModel(box, result) }));
       }
+      if (f.key === 'remoteUrl') {
+        extraButtons.push(el('button', { type: 'button', class: 'small', text: 'Test', onclick: () => testRemote(box, result) }));
+      }
+      if (f.key === 'allowRemoteModel') {
+        // Ticking it shows the warning at once; Cancel unticks it again (user, 25 Nov).
+        input.addEventListener('change', async () => {
+          if (!input.checked || settings.saved.allowRemoteModel) return;
+          const url = box.querySelector('[data-key="remoteUrl"]').value.trim();
+          const choice = await showRemoteWarning(url);
+          if (!choice) { input.checked = false; return; }
+          remoteAgreedInForm = { ...choice, url };   // accepted for the address that was shown, no other
+        });
+      }
       const waitingForRestart = (settings.pendingRestart || []).includes(f.key);
       const appliesText = f.applies === 'now' ? 'applies now' : (waitingForRestart ? 'saved: waiting for Restart' : 'needs Restart');
       const appliesTitle = f.applies === 'now' ? 'The next turn uses it' : 'Press Restart (or Stop and Start) to use it';
@@ -393,6 +499,15 @@ function drawForms() {
     const saveButton = el('button', { type: 'button', class: 'primary', text: 'Save', onclick: () => saveForm(box, fields, problems) });
     const undoButton = el('button', { type: 'button', text: 'Undo changes', onclick: () => drawForms() });
     box.append(...rows, problems, el('div', { class: 'buttons left' }, saveButton, undoButton));
+    if (box.dataset.form === 'connection' && settings.saved.remoteWarningAcceptedFor) {
+      // "Don't show this again" was ticked for one address: a way to see the warning again.
+      box.append(el('div', { class: 'hint' },
+        el('span', { text: `The outside-address warning is not shown again for ${settings.saved.remoteWarningAcceptedFor}. ` }),
+        el('button', { type: 'button', class: 'small', text: 'Show it again', onclick: async () => {
+          const answer = await post('/api/settings', { settings: { remoteWarningAcceptedFor: '' } });
+          if (answer.ok) { settings = answer; drawForms(); }
+        } })));
+    }
     box.oninput = () => box.classList.add('dirty');
     box.classList.remove('dirty');
   }
@@ -417,6 +532,14 @@ async function saveForm(box, fields, problems) {
     return;
   }
   settings = answer;
+  // The warning was accepted when the box was ticked: tell ContextWeir, but only if the address
+  // saved is the one the warning showed. Otherwise the warning comes again at Restart.
+  if (remoteAgreedInForm && settings.saved.allowRemoteModel && settings.saved.remoteUrl
+    && remoteAgreedInForm.url === settings.saved.remoteUrl) {
+    await post('/api/control', { action: 'remote-ok', url: settings.saved.remoteUrl, dontShowAgain: remoteAgreedInForm.dontShowAgain, start: false });
+    settings = await getJson('/api/settings');
+  }
+  remoteAgreedInForm = null;
   drawForms();
   await refreshStatus();   // shows "waiting for Restart" when a saved setting needs it
   const restartBarShowing = (answer.pendingRestart || []).length && status && status.relay;
@@ -450,6 +573,33 @@ async function testModel(box, result) {
   result.textContent = answer.reachable
     ? 'answers: ' + modelServerLine(answer)
     : `no answer on ${host}:${port} (${answer.error || 'nothing there'}). Is KoboldCpp running?`;
+  result.className = 'result ' + (answer.reachable ? 'good' : 'bad');
+}
+
+// The Test button beside the remote address: only the saved address, after its warning.
+async function testRemote(box, result) {
+  const url = box.querySelector('[data-key="remoteUrl"]').value.trim();
+  if (!settings.saved.allowRemoteModel || url !== settings.saved.remoteUrl) {
+    result.textContent = 'Tick "Allow…", save, then test.';
+    result.className = 'result bad';
+    return;
+  }
+  result.textContent = 'asking…';
+  result.className = 'result';
+  let answer = await post('/api/test-model', { url });
+  if (answer.needsRemoteOk) {
+    if (!(await askRemoteOk({ start: false }))) { result.textContent = 'not tested'; return; }
+    answer = await post('/api/test-model', { url });
+  }
+  if (answer.error && answer.reachable === undefined) {
+    result.textContent = answer.error;
+    result.className = 'result bad';
+    return;
+  }
+  const status401 = answer.status === 401 || answer.status === 403;
+  result.textContent = answer.reachable
+    ? `answers (HTTP ${answer.status})${status401 ? ': it wants an API key, which your frontend sends' : ''}`
+    : `no answer (${answer.error || 'nothing there'})`;
   result.className = 'result ' + (answer.reachable ? 'good' : 'bad');
 }
 
@@ -1024,4 +1174,10 @@ document.addEventListener('keydown', e => {
   await loadSettings();
   await refreshStatus();
   setInterval(refreshStatus, 3000);
+  // The thank-you note first, then (if ContextWeir tried to start and is waiting for it) the warning,
+  // so the warning is the last thing read before recording starts.
+  if (status && status.showThanks) await showThanks();
+  if (status && status.remote && status.remote.warningNeeded && !status.relay && settings && !settings.saved.showStartScreen) {
+    await askRemoteOk({ start: true });
+  }
 })();
