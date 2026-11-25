@@ -5,7 +5,7 @@
 // prompt and every reply. Nothing is copied from a real session.
 //
 // It writes tools\demo\:
-//   README.txt
+//   README.md
 //   characters\Lantern Coast.json    a character card (SillyTavern's card format as a JSON file; SillyTavern
 //                                    can import it. JSON, not PNG: the tools' own copy step only carries text)
 //   worlds\Lantern Coast.json        a lorebook in SillyTavern's format
@@ -290,46 +290,54 @@ function cardJson(card) {
 
 // ---------------------------------------------------------------------------------------------
 
-const README = `MADE-UP DEMO FOR CONTEXTWEIR AND PROMPTASSAY
-${CREDIT}
+const README = `# Made-up demo for ContextWeir and PromptAssay
+
+<!-- ${CREDIT} -->
 
 Everything in this folder is invented: the Lantern Coast, Keeper Odile Marsh, Tamsin, the player
 "Wren", every prompt and every reply. No real chat was used. It is here so you can explore
-PromptAssay before setting anything up, and so screenshots and tests never need a real log
-(real logs can hold private play and story secrets).
+PromptAssay before setting anything up, and so screenshots and tests never need a real log (real
+logs can hold private play and story secrets).
 
-PromptAssay lists the demo session at the bottom of its session list, marked "demo (made up)",
-labelled against the demo's own card and lorebook. To hide it, set "showDemo": false in
-promptassay\\settings.json.
+PromptAssay lists the demo sessions at the bottom of its session list, marked "demo (made up)",
+labelled against the demo's own card and lorebook. To hide them, set \`"showDemo": false\` in
+\`promptassay/settings.json\`.
 
-What to look for in the 12 requests:
-  #1   the Salt Steps and Greywick Light entries arrive (keys: steps, lighthouse)
-  #2-3 a swipe: the same history asked twice, two different replies
-  #4   a flagged reply ("Reply starts with OOC"), and the Drowned Bell entry entering
-  #6   SillyTavern's Summarize request (no status line expected, so not flagged)
-  #7   the summary now sits in the prompt as "[Summary: ...]"
-  #8   the model asked for changes (demo-model -> demo-model-large)
-  #9   an empty reply, flagged serious; #10 is its regenerate
-  #11  Tamsin enters, Odile's entry leaves
-  #12  a story reply without its status line ("No status line")
+## What to look for in the 12 requests
 
-A SECOND SESSION (2 Jan) holds the same 12 requests as SillyTavern sends them in TEXT COMPLETION
-with the ChatML instruct template: one prompt string per request. PromptAssay takes it apart into
-the same kind of sections ("by template") and says how it did. This one is also made up, laid out
-the way SillyTavern's instruct mode builds a prompt; it will be replaced by a real capture made with
-this demo card.
+| Request | What happens |
+| --- | --- |
+| #1 | the Salt Steps and Greywick Light entries arrive (keys: steps, lighthouse) |
+| #2-3 | a swipe: the same history asked twice, two different replies |
+| #4 | a flagged reply ("Reply starts with OOC"), and the Drowned Bell entry entering |
+| #6 | SillyTavern's Summarize request (no status line expected, so not flagged) |
+| #7 | the summary now sits in the prompt as "[Summary: ...]" |
+| #8 | the model asked for changes (demo-model to demo-model-large) |
+| #9 | an empty reply, flagged serious; #10 is its regenerate |
+| #11 | Tamsin enters, Odile's entry leaves |
+| #12 | a story reply without its status line ("No status line") |
 
-Files:
-  characters\\Lantern Coast.json    the character card (SillyTavern can import it)
-  worlds\\Lantern Coast.json        the lorebook
-  rules\\lantern_coast_rules.json   a rule set: import it on ContextWeir's Rules tab to try one
-  logs\\session_...\\               the two recorded sessions, in ContextWeir's log format 1
-Made by dev\\make_demo.js (not shipped).
+## The second session
+
+The second session (2 Jan) holds the same 12 requests as SillyTavern sends them in text
+completion, with the ChatML instruct template: one prompt string per request. PromptAssay takes it
+apart into the same kind of sections ("by template") and says how it did.
+
+## Files
+
+| File | What it is |
+| --- | --- |
+| \`characters/Lantern Coast.json\` | the character card (SillyTavern can import it) |
+| \`worlds/Lantern Coast.json\` | the lorebook |
+| \`rules/lantern_coast_rules.json\` | a rule set: import it on ContextWeir's Rules tab to try one |
+| \`logs/session_.../\` | the two recorded sessions, in ContextWeir's log format 1 |
+
+Made by \`dev/make_demo.js\`.
 `;
 
 fs.rmSync(OUT, { recursive: true, force: true });
 for (const d of ['characters', 'worlds', 'rules']) fs.mkdirSync(path.join(OUT, d), { recursive: true });
-fs.writeFileSync(path.join(OUT, 'README.txt'), README);
+fs.writeFileSync(path.join(OUT, 'README.md'), README);
 fs.writeFileSync(path.join(OUT, 'characters', 'Lantern Coast.json'), JSON.stringify(cardJson(CARD), null, 2) + '\n');
 fs.writeFileSync(path.join(OUT, 'worlds', 'Lantern Coast.json'), JSON.stringify(lorebookFile(), null, 2) + '\n');
 fs.writeFileSync(path.join(OUT, 'rules', 'lantern_coast_rules.json'), JSON.stringify(RULES, null, 2) + '\n');

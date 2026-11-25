@@ -24,7 +24,7 @@ const allFiles = dir => fs.readdirSync(dir, { withFileTypes: true })
 
   // --- the files, and that they are made up ------------------------------------------
   const files = allFiles(DEMO).map(f => path.relative(DEMO, f).replace(/\\/g, '/')).sort();
-  ok(['README.txt', 'characters/Lantern Coast.json', 'rules/lantern_coast_rules.json', 'worlds/Lantern Coast.json',
+  ok(['README.md', 'characters/Lantern Coast.json', 'rules/lantern_coast_rules.json', 'worlds/Lantern Coast.json',
     'logs/session_2026-01-01T10-00-00-000Z/records.jsonl', 'logs/session_2026-01-01T10-00-00-000Z/summary.json'].every(f => files.includes(f)),
   'the demo folder holds the card, lorebook, rule set, session and README', files.length + ' files');
 

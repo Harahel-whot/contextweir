@@ -8,7 +8,7 @@ as your own.
 
 Two licences apply:
 - The CODE (every .js, .bat, .command and .sh file) is under the MIT licence, below.
-- The HELP, DOCS and ICONS (help.html, README.txt, SECURITY.txt and the files in each icon
+- The HELP, DOCS and ICONS (help.html, the .md files and the files in each icon
   folder) are under Creative Commons Attribution 4.0 International (CC BY 4.0):
   https://creativecommons.org/licenses/by/4.0/
   Credit as: "ContextWeir and PromptAssay by Harahel-Whot, written with Claude (Anthropic)",

@@ -26,7 +26,7 @@
 // all in the same window. Everything happens inside this one program: no
 // child processes.
 //
-// SECURITY (summed up for people in SECURITY.txt):
+// SECURITY (summed up for people in SECURITY.md):
 //   - listens on 127.0.0.1 only; forwards to a model server on this computer
 //     (loopback) unless "Allow a model server on another computer" is on
 //     (since 0.6). Then a warning must be accepted before any

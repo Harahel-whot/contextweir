@@ -21,7 +21,7 @@ def lines_for(rel):
     else:
         first = f'ContextWeir {VER["contextweir"]} and PromptAssay {VER["promptassay"]}, built {BUILT}. Part of the {MARK}.'
     doc = rel.endswith(('.html', '.svg', '.txt', '.css', '.md')) and not rel.endswith('ui.css') and not rel.endswith('app.css')
-    lic = 'Licence: CC BY 4.0 (see LICENSE.txt).' if rel.endswith(('help.html', '.svg', 'README.txt', 'SECURITY.txt', '.md')) else 'Licence: MIT (see LICENSE.txt).'
+    lic = 'Licence: CC BY 4.0 (see LICENSE.txt).' if rel.endswith(('help.html', '.svg', '.md')) else 'Licence: MIT (see LICENSE.txt).'
     return [first, f'Directed by {DIRECTOR}. Written by {MODEL}.', f'{lic} {SOURCE}']
 
 def wrap(rel, L):
@@ -31,7 +31,8 @@ def wrap(rel, L):
     if ext in ('.sh', '.command'): return ''.join(f'# {l}\n' for l in L)
     if ext == '.css': return '/* ' + '\n   '.join(L) + ' */\n'
     if ext in ('.html', '.svg'): return '<!-- ' + '\n     '.join(L) + ' -->\n'
-    if ext in ('.txt', '.md'): return ''.join(f'{l}\n' for l in L) + '\n'
+    if ext == '.txt': return ''.join(f'{l}\n' for l in L) + '\n'
+    if ext == '.md': return '<!-- ' + '\n     '.join(L) + ' -->\n\n'
     return None
 
 HDR_RE = {  # an existing header block (so running twice replaces, not stacks)
@@ -43,7 +44,7 @@ HDR_RE = {  # an existing header block (so running twice replaces, not stacks)
     '.html': re.compile(r'<!-- [^\n]*Wellspring tools.*?-->\n', re.S),
     '.svg': re.compile(r'<!-- [^\n]*Wellspring tools.*?-->\n', re.S),
     '.txt': re.compile(r'[^\n]*Wellspring tools[^\n]*\n[^\n]*\n[^\n]*Source: [^\n]*\n\n'),
-    '.md': re.compile(r'[^\n]*Wellspring tools[^\n]*\n[^\n]*\n[^\n]*Source: [^\n]*\n\n'),
+    '.md': re.compile(r'<!-- [^\n]*Wellspring tools.*?-->\n\n', re.S),
 }
 done = []
 for d, _, files in os.walk(ROOT):

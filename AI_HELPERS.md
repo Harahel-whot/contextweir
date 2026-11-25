@@ -1,11 +1,8 @@
 # ContextWeir and PromptAssay: a guide for AI assistants
 
-ContextWeir 0.6.0.0 and PromptAssay 0.4.1.0, built 25 Nov 2026. Part of the Wellspring tools.
-Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
-Licence: CC BY 4.0 (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
-
-ContextWeir 0.5.4.0 and PromptAssay 0.3.5.0, built 25 Nov 2026. Part of the Wellspring tools.
-Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic). Licence: CC BY 4.0 (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir
+<!-- ContextWeir 0.6.0.0 and PromptAssay 0.4.1.0, built 25 Nov 2026. Part of the Wellspring tools.
+     Directed by Harahel-Whot. Written by Claude Opus 5.5 (Anthropic).
+     Licence: CC BY 4.0 (see LICENSE.txt). Source: https://github.com/Harahel-Whot/contextweir -->
 
 This file is for AI assistants (Claude Code and the like) that a person asks for help with these
 tools, for example to write flag rules for their character card, change a setting, or read what
@@ -29,7 +26,7 @@ Both run only on this computer (127.0.0.1) and need Node.js 18 or newer, with no
 ```
 tools/
   AI_HELPERS.md            this file
-  README.txt, SECURITY.txt, LICENSE.txt
+  README.md, SECURITY.md, LICENSE.txt
   contextweir/
     contextweir.js         the program (also the checker, see below)
     settings.json          its settings          (the person's file: change only as below)
