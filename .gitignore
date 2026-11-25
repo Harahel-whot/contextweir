@@ -16,3 +16,6 @@ node_modules/
 dev/tests/cwlogs/
 dev/tests/cw_about/
 dev/tests/rules_ui/
+
+# files the test runs write
+dev/tests/*_running.json
