@@ -361,10 +361,12 @@ async function showThanks() {
   $('#thanksTitle').textContent = `Thank you for using ${about.name}!`;
   const links = $('#thanksLinks');
   links.textContent = '';
-  const link = (label, href) => (href
-    ? el('a', { href, target: '_blank', rel: 'noopener noreferrer', text: label })
-    : el('span', { class: 'muted', text: `${label} (coming soon)` }));
-  links.append(link('GitHub', about.links.github), ' · ', link('Discord', about.links.discord));
+  // Only places that exist are shown; a new one is a line in ABOUT.links on the server.
+  const names = { github: 'GitHub', discord: 'Discord' };
+  Object.entries(about.links || {}).filter(([, href]) => href).forEach(([key, href], i) => {
+    if (i) links.append(' · ');
+    links.append(el('a', { href, target: '_blank', rel: 'noopener noreferrer', text: names[key] || key }));
+  });
   $('#thanksVersion').textContent = `${about.name} ${about.version}, built ${about.built} · by ${about.directedBy}, written with Claude (Anthropic)`;
   $('#thanksHide').checked = false;
   await waitForDialog($('#thanksDialog'));

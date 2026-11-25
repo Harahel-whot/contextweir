@@ -1,1 +1,1 @@
-{"relayPort":6002,"targetHost":"192.168.1.50","logsDir":"/home/claude/w/tools/dev/tests/cwlogs"}
+{"relayPort":6002,"targetPort":6001,"logsDir":"/home/claude/cw/dev/tests/cwlogs","keepSessions":2,"upstreamTimeoutSec":2,"maxRequestMB":1,"showStartScreen":false}

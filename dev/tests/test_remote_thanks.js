@@ -118,7 +118,7 @@ const latestSession = logs => fs.readdirSync(logs).filter(n => n.startsWith('ses
   await H.panelPost(thanks.port, '/api/settings', { settings: { showThanks: false } });
   c.ok((await status(thanks.port)).showThanks === false && readSettings('thanks').showThanks === false, '"Don\'t show this again" saves showThanks false');
   const about = (await H.request({ port: thanks.port, pathName: '/api/about' })).json;
-  c.ok(about.links && about.links.github === 'https://github.com/Harahel-Whot/contextweir' && about.links.discord === '', 'About carries the GitHub link and an empty Discord link');
+  c.ok(about.links && about.links.github === 'https://github.com/Harahel-Whot/contextweir' && !('discord' in about.links), 'About carries the GitHub link and no Discord link');
   c.ok(about.version === '0.6.0.0', 'ContextWeir is 0.6.0.0', about.version);
   thanks.proc.kill();
 
@@ -276,7 +276,7 @@ const latestSession = logs => fs.readdirSync(logs).filter(n => n.startsWith('ses
   await H.sleep(1500);
   c.ok(await b.js("return document.querySelector('#thanksDialog').open"), 'panel: the thank-you note opens first');
   c.ok(await b.js("return document.querySelector('#thanksLinks a').href === 'https://github.com/Harahel-Whot/contextweir/' || document.querySelector('#thanksLinks a').href.startsWith('https://github.com/Harahel-Whot/contextweir')"), 'panel: the note links to GitHub');
-  c.ok(/coming soon/.test(await b.js("return document.querySelector('#thanksLinks').textContent")), 'panel: Discord shows "coming soon"');
+  c.ok(await b.js("return document.querySelector('#thanksLinks').textContent.trim() === 'GitHub'"), 'panel: only GitHub is listed (no Discord yet)');
   c.ok(!(await b.js("return document.querySelector('#remoteDialog').open")), 'panel: the warning waits behind the note');
   await b.shot(path.join(W, 'thanks.png'));
   await b.js("document.querySelector('#thanksHide').checked = true; document.querySelector('#thanksClose').click(); return true");

@@ -105,10 +105,9 @@ const ABOUT = {
   privacy: 'Runs only on this computer. Prompts go only to the model server you set: on this computer '
     + 'unless you allow another one (a warning explains the risk first). Logs hold full prompts and '
     + 'replies in plain text; keep them private.',
-  // Where to send feedback (thank-you popup and About). An empty address shows as "coming soon".
+  // Where to send feedback (thank-you popup). Only these are shown; add a line here for a new place.
   links: {
     github: 'https://github.com/Harahel-Whot/contextweir',
-    discord: '',
   },
 };
 

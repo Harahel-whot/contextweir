@@ -77,10 +77,9 @@ const ABOUT = {
     + 'as long as the credit is kept. See LICENSE.txt.',
   privacy: 'Reads only (the one thing it writes is its own settings.json, when you tick "Don\'t show this again" '
     + 'in the thank-you note). Runs only on this computer; nothing is sent anywhere.',
-  // Where to send feedback (thank-you popup and About). An empty address shows as "coming soon".
+  // Where to send feedback (thank-you popup). Only these are shown; add a line here for a new place.
   links: {
     github: 'https://github.com/Harahel-Whot/contextweir',
-    discord: '',
   },
 };
 
