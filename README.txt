@@ -43,11 +43,12 @@ TRY PROMPTASSAY FIRST (nothing to set up)
 RECORD WITH CONTEXTWEIR
   1. Start ContextWeir. Its control panel opens on the start screen. On the Connection tab,
      check the receiving port and test the model server, then press Start.
-  2. In SillyTavern, point the API address at  http://127.0.0.1:5012/v1  (ContextWeir's
-     receiving port) instead of your model server's own address.
+  2. In SillyTavern, point the API address at  http://127.0.0.1:5002/v1  (ContextWeir's
+     receiving port; the Connection tab shows it and lets you change it) instead of your model
+     server's own address.
   3. Play a few turns. PromptAssay shows the new session at the top of its list.
   4. To stop: point SillyTavern back at your model server and press Quit in the panel. While
-     ContextWeir is closed, nothing answers on 5012.
+     ContextWeir is closed, nothing answers on that port.
 
 Both windows have a Help button (the full guide; the same text is help.html in each tool's
 folder) and an About button.
