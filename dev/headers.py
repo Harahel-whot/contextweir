@@ -2,7 +2,7 @@
 # adds _about to the JSON files, and (since 24 Nov evening) also sets the version and build
 # date everywhere else they are written, so they can never disagree:
 #   VERSION and BUILT in contextweir.js and promptassay.js, the "versions 0.1 to x" credit in
-#   each ABOUT, the "Version x (prototype), built y" line in each help.html, and the README title.
+#   each ABOUT, the "Version x (prototype), built y" line in each help.html (the README's versions are in its header line).
 # Usage: edit BUILT and VER below, then   python3 headers.py <tools folder>   (safe to run again).
 import json, os, re, sys
 ROOT = sys.argv[1]
@@ -90,8 +90,6 @@ for tool, script in (('contextweir', 'contextweir/contextweir.js'), ('promptassa
     sub_file(script, r"const BUILT = '[^']*';", f"const BUILT = '{BUILT}';")
     sub_file(script, r"versions: '0\.1 to [^']*'", f"versions: '0.1 to {VER[tool]}'")
     sub_file(f'{tool}/help.html', r'Version [0-9.]+ \(prototype\), built [0-9]+ [A-Z][a-z]+ [0-9]{4}', f'Version {VER[tool]} (prototype), built {BUILT}')
-sub_file('README.txt', r'\(prototypes: ContextWeir [0-9.]+ and PromptAssay [0-9.]+, built [^)]*\)',
-         f'(prototypes: ContextWeir {VER["contextweir"]} and PromptAssay {VER["promptassay"]}, built {BUILT})')
 # The JSON Schemas are made by ContextWeir itself from its own lists, so they carry its version.
 import subprocess
 for kind in ('settings', 'rules', 'setup'):

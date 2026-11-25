@@ -53,4 +53,4 @@ hold secrets.
 Never expose SillyTavern or these tools to the internet. If you use remote access (for example
 Tailscale), keep SillyTavern's whitelist or login on.
 
-The full review, with what was tested, is part of the transparency package.
+The full security review, with what was tested, will be published with the project's design notes.

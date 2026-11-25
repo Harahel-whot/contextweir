@@ -661,7 +661,7 @@ $('#aboutBtn').addEventListener('click', async () => {
 $('#aboutClose').addEventListener('click', () => $('#aboutDialog').close());
 
 // Help opens in a window of its own (the same help.html that ships in the folder). The page keeps
-// hold of that window so it can close it when this window closes (or reloads) (user, 24 Nov).
+// hold of that window so it can close it when this window closes (or reloads).
 let helpWindow = null;
 $('#helpBtn').addEventListener('click', () => { helpWindow = window.open('/help', 'help', 'width=920,height=900'); });
 function closeHelp() {
@@ -720,7 +720,7 @@ $('#onlyFlagged').addEventListener('change', drawLists);
 $('#ruleFilter').addEventListener('change', drawLists);
 $('#kindFilter').addEventListener('change', drawLists);
 
-// Keyboard shortcuts (user, 24 Nov). Single keys work when you are not typing in a box.
+// Keyboard shortcuts. Single keys work when you are not typing in a box.
 const KEYS = [
   ['← / →', 'The request before / after'],
   ['↑ / ↓  (or K / J)', 'Up / down the list (the list shows the newest first)'],
@@ -788,7 +788,7 @@ document.addEventListener('keydown', e => {
   if (act) { e.preventDefault(); act(); }
 });
 
-// Window size on opening (user, 24 Nov): browsers ignore the size the launcher asks for once
+// Window size on opening: browsers ignore the size the launcher asks for once
 // they have remembered one, so the page sets its own size when a new window opens. Only in a
 // window the launcher opened (it adds ?fit to the address), only once per window, so a size the
 // user picks survives reloads. A browser ignores this in an ordinary tab.
@@ -804,7 +804,7 @@ document.addEventListener('keydown', e => {
   } catch (_) { /* not allowed here: keep the browser's size */ }
 })();
 
-// The thank-you note (user, 25 Nov): when the window opens, until "Don't show this again". It
+// The thank-you note: when the window opens, until "Don't show this again". It
 // never blocks the page underneath. Ticking the box is the one thing PromptAssay ever writes:
 // showThanks false in its own settings.json (POST /api/thanks).
 async function showThanks() {

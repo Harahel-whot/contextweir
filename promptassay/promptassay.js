@@ -104,7 +104,7 @@ const DEFAULTS = {
   // Optional: SillyTavern's instruct preset folder, to take text-completion prompts apart. Left
   // empty, the "instruct" folder beside worldsDir is used if there is one.
   instructDir: '',
-  // The thank-you note when the window opens (user, 25 Nov). "Don't show this again" sets it false.
+  // The thank-you note when the window opens. "Don't show this again" sets it false.
   showThanks: true,
 };
 
@@ -1103,7 +1103,7 @@ function handleRequest(req, res) {
   send(res, 404, { error: 'not found' });
 }
 
-// POST /api/thanks  { show: false }: the thank-you note's "Don't show this again" (user, 25 Nov).
+// POST /api/thanks  { show: false }: the thank-you note's "Don't show this again".
 // The only request that writes anything. It must come from this window's own page (an Origin on
 // this port, not just "no Origin"), as JSON, at most 1 KB; it sets showThanks to false in
 // settings.json and keeps every other line of the file as it was (temp file, then rename).

@@ -26,10 +26,10 @@
 // all in the same window. Everything happens inside this one program: no
 // child processes.
 //
-// SECURITY (see the transparency package's security pass):
+// SECURITY (summed up for people in SECURITY.txt):
 //   - listens on 127.0.0.1 only; forwards to a model server on this computer
 //     (loopback) unless "Allow a model server on another computer" is on
-//     (since 0.6, user 25 Nov). Then a warning must be accepted before any
+//     (since 0.6). Then a warning must be accepted before any
 //     recording starts (per address), https certificates are always checked,
 //     and no request is ever sent there except the frontend's own
 //   - checks the Host and Origin headers on every request (blocks web pages
@@ -1135,7 +1135,7 @@ function startSession() {
   pruneSessions(logsDir, dir);
   saveSummary();
 
-  // A remote model server is never asked anything ContextWeir sends on its own (user, 25 Nov):
+  // A remote model server is never asked anything ContextWeir sends on its own:
   // only the frontend's own requests go there. The summary notes the address instead.
   const target = modelTarget(settings);
   session.stats.target = target.label;
@@ -1261,7 +1261,7 @@ const withoutHopHeaders = headers => {
 // The addresses whose requests are recorded: generation requests. Matched exactly (the query
 // string ignored), never by a loose pattern. Everything else (model lists, token counts, aborts)
 // passes through unrecorded. The last two are for servers this project cannot test on
-// (llama.cpp's own API, Ollama): shipped marked "untested" in the help (user, 25 Nov).
+// (llama.cpp's own API, Ollama): shipped marked "untested" in the help.
 const GENERATION_PATHS = new Set([
   '/v1/chat/completions', '/chat/completions',   // chat completion (OpenAI style; KoboldCpp too)
   '/v1/completions', '/completions',             // text completion (OpenAI style; KoboldCpp too)
@@ -1939,7 +1939,7 @@ async function pressButton(action, res, body = {}) {
   }
 
   if (action === 'quit') {
-    // Quit closes everything (user, 24 Nov): ContextWeir ends here, its console closes with it
+    // Quit closes everything: ContextWeir ends here, its console closes with it
     // (the Windows launcher starts it with cmd /c), and the panel closes its own window.
     // Closing only the panel window leaves ContextWeir recording.
     sendJson(res, 200, { ...statusView(), state: 'quitting' });

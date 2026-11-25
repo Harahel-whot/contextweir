@@ -337,7 +337,7 @@ async function refreshStatus() {
 
 
 // ----------------------------------------------------------------------------
-// 2b. Two popups: the thank-you note and the outside-address warning (user, 25 Nov)
+// 2b. Two popups: the thank-you note and the outside-address warning
 // ----------------------------------------------------------------------------
 // The thank-you note shows when the panel opens, until "Don't show this again" (saved as
 // showThanks). It never blocks anything: ContextWeir keeps relaying behind it.
@@ -478,7 +478,7 @@ function drawForms() {
         extraButtons.push(el('button', { type: 'button', class: 'small', text: 'Test', onclick: () => testRemote(box, result) }));
       }
       if (f.key === 'allowRemoteModel') {
-        // Ticking it shows the warning at once; Cancel unticks it again (user, 25 Nov).
+        // Ticking it shows the warning at once; Cancel unticks it again.
         input.addEventListener('change', async () => {
           if (!input.checked || settings.saved.allowRemoteModel) return;
           const url = box.querySelector('[data-key="remoteUrl"]').value.trim();
@@ -1038,7 +1038,7 @@ $('#aboutBtn').addEventListener('click', async () => {
 $('#aboutClose').addEventListener('click', () => $('#aboutDialog').close());
 
 // Help opens in a window of its own (the same help.html that ships in the folder). The page keeps
-// hold of that window so it can close it when this window closes (or reloads) (user, 24 Nov).
+// hold of that window so it can close it when this window closes (or reloads).
 // openHelp('CW-PORT-TAKEN') opens it at that error code's explanation.
 let helpWindow = null;
 function openHelp(anchor = '') {
@@ -1099,7 +1099,7 @@ $('#diagCopy').addEventListener('click', async () => {
 
 
 // ----------------------------------------------------------------------------
-// 9. Window size on opening (user, 24 Nov)
+// 9. Window size on opening
 // ----------------------------------------------------------------------------
 // Browsers ignore the size the launcher asks for once they have remembered
 // one, so the page sets its own size when a new window opens. Only in a
@@ -1120,7 +1120,7 @@ $('#diagCopy').addEventListener('click', async () => {
 
 
 // ----------------------------------------------------------------------------
-// 10. Keyboard shortcuts (user, 24 Nov)
+// 10. Keyboard shortcuts
 // ----------------------------------------------------------------------------
 // Alt+letter for the buttons, so nothing fires while typing. Stop and Quit
 // have no shortcut, on purpose (they cut your frontend off).
